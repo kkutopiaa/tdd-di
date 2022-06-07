@@ -1,7 +1,7 @@
 package kuan.tdd.di;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -13,22 +13,18 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class ContainerTest {
 
-    interface Component {
+    Context context;
 
+    @BeforeEach
+    public void setup() {
+        context = new Context();
     }
 
-    // inner class , static or non-static , default constructor , has some trouble...
-    static class ComponentWithDefaultConstructor implements Component {
-        public ComponentWithDefaultConstructor() {
-        }
-    }
 
     @Nested
     public class ComponentConstruction {
-        // TODO instance
         @Test
         public void should_bind_type_to_a_specific_instance() {
-            Context context = new Context();
             Component instance = new Component() {
             };
 
@@ -44,11 +40,9 @@ public class ContainerTest {
 
 
         @Nested
-        public class ConstructorInjection{
-            // TODO no args constructor
+        public class ConstructorInjection {
             @Test
             public void should_bind_type_to_a_class_with_default_constructor() {
-                Context context = new Context();
                 context.bind(Component.class, ComponentWithDefaultConstructor.class);
 
                 Component instance = context.get(Component.class);
@@ -63,12 +57,12 @@ public class ContainerTest {
         }
 
         @Nested
-        public class FieldInjection{
+        public class FieldInjection {
 
         }
 
         @Nested
-        public class MethodInjection{
+        public class MethodInjection {
 
         }
 
@@ -87,3 +81,17 @@ public class ContainerTest {
 
 
 }
+
+
+interface Component {
+
+}
+
+
+
+// inner class , static or non-static , default constructor , has some trouble...
+class ComponentWithDefaultConstructor implements Component {
+    public ComponentWithDefaultConstructor() {
+    }
+}
+
