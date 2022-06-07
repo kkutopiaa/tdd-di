@@ -84,6 +84,12 @@ public class ContainerTest {
                         () -> context.bind(Component.class, ComponentWithMultiInjectConstructors.class));
             }
 
+            @Test
+            public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> context.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class));
+            }
+
 
         }
 
@@ -141,13 +147,18 @@ class ComponentWithInjectConstructor implements Component {
     }
 }
 
-class ComponentWithMultiInjectConstructors implements Component{
+class ComponentWithMultiInjectConstructors implements Component {
     @Inject
     public ComponentWithMultiInjectConstructors(String name, Double value) {
     }
 
     @Inject
     public ComponentWithMultiInjectConstructors(String name) {
+    }
+}
+
+class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+    public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
     }
 }
 

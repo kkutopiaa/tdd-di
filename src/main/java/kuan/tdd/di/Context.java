@@ -30,6 +30,11 @@ public class Context {
         if (injectConstructors.length > 1) {
             throw new IllegalComponentException();
         }
+        if (injectConstructors.length == 0 &&
+                Arrays.stream(implementation.getConstructors())
+                        .noneMatch(c -> c.getParameters().length == 0)) {
+            throw new IllegalComponentException();
+        }
 
         providers.put(type, (Provider<Type>) () -> {
             try {
