@@ -31,7 +31,6 @@ public class ContainerTest {
             context.bind(Component.class, instance);
 
             assertSame(instance, context.get(Component.class));
-
         }
 
         // TODO abstract class
@@ -51,7 +50,6 @@ public class ContainerTest {
                 assertTrue(instance instanceof ComponentWithDefaultConstructor);
             }
 
-            // TODO with dependencies
             @Test
             public void should_bind_type_to_a_class_with_inject_constructor() {
                 Dependency dependency = new Dependency() {
@@ -65,7 +63,6 @@ public class ContainerTest {
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
             }
 
-            // TODO A --> B --> C
             @Test
             public void should_bind_type_to_a_class_with_transitive_dependencies() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
@@ -80,6 +77,13 @@ public class ContainerTest {
 
                 assertEquals("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
             }
+
+            @Test
+            public void should_throw_exception_if_multi_inject_constructors_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> context.bind(Component.class, ComponentWithMultiInjectConstructors.class));
+            }
+
 
         }
 
@@ -134,6 +138,16 @@ class ComponentWithInjectConstructor implements Component {
 
     public Dependency getDependency() {
         return dependency;
+    }
+}
+
+class ComponentWithMultiInjectConstructors implements Component{
+    @Inject
+    public ComponentWithMultiInjectConstructors(String name, Double value) {
+    }
+
+    @Inject
+    public ComponentWithMultiInjectConstructors(String name) {
     }
 }
 
