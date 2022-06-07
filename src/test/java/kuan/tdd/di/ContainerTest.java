@@ -52,6 +52,20 @@ public class ContainerTest {
             }
 
             // TODO with dependencies
+            @Test
+            public void should_bind_type_to_a_class_with_inject_constructor() {
+                Dependency dependency = new Dependency() {
+                };
+
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, dependency);
+                Component instance = context.get(Component.class);
+
+                assertNotNull(instance);
+                assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
+            }
+
+
             // TODO A --> B --> C
 
         }
@@ -87,7 +101,9 @@ interface Component {
 
 }
 
+interface Dependency {
 
+}
 
 // inner class , static or non-static , default constructor , has some trouble...
 class ComponentWithDefaultConstructor implements Component {
@@ -95,3 +111,16 @@ class ComponentWithDefaultConstructor implements Component {
     }
 }
 
+class ComponentWithInjectConstructor implements Component {
+    Dependency dependency;
+
+    @Inject
+    public ComponentWithInjectConstructor(Dependency dependency) {
+        this.dependency = dependency;
+    }
+
+    public Dependency getDependency() {
+        return dependency;
+    }
+
+}

@@ -1,10 +1,15 @@
 package kuan.tdd.di;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author qinxuekuan
@@ -21,12 +26,31 @@ public class Context {
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         providers.put(type, (Provider<Type>) () -> {
             try {
-                return (Type) implementation.getConstructor().newInstance();
+                Constructor<Implementation> injectConstructor = getConstructor(implementation);
+                Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
+                        .map(p -> get(p.getType()))
+                        .toArray(Object[]::new);
+                return (Type) injectConstructor.newInstance(dependencies);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private <Type> Constructor<Type> getConstructor(Class<Type> implementation) throws NoSuchMethodException {
+        Stream<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
+                .filter(c -> c.isAnnotationPresent(Inject.class));
+
+        return (Constructor<Type>) injectConstructors.findFirst().orElseGet(()->{
+            try {
+                return implementation.getConstructor();
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+
     }
 
     public <Type> Type get(Class<Type> type) {
