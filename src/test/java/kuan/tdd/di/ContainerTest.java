@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -30,7 +32,7 @@ public class ContainerTest {
 
             context.bind(Component.class, instance);
 
-            assertSame(instance, context.get(Component.class));
+            assertSame(instance, context.get(Component.class).orElseThrow(DependencyNotFoundException::new));
         }
 
         // TODO abstract class
@@ -38,13 +40,19 @@ public class ContainerTest {
         // TODO interface
 
 
+        @Test
+        public void should_return_empty_if_component_not_defined() {
+            Optional<Component> component = context.get(Component.class);
+            assertTrue(component.isEmpty());
+        }
+
         @Nested
         public class ConstructorInjection {
             @Test
             public void should_bind_type_to_a_class_with_default_constructor() {
                 context.bind(Component.class, ComponentWithDefaultConstructor.class);
 
-                Component instance = context.get(Component.class);
+                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
 
                 assertNotNull(instance);
                 assertTrue(instance instanceof ComponentWithDefaultConstructor);
@@ -57,7 +65,7 @@ public class ContainerTest {
 
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, dependency);
-                Component instance = context.get(Component.class);
+                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
 
                 assertNotNull(instance);
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
@@ -69,7 +77,7 @@ public class ContainerTest {
                 context.bind(Dependency.class, DependencyWithInjectConstructor.class);
                 context.bind(String.class, "indirect dependency");
 
-                Component instance = context.get(Component.class);
+                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
                 assertNotNull(instance);
 
                 Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
@@ -94,7 +102,7 @@ public class ContainerTest {
             public void should_throw_exception_if_dependency_not_found() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
 
-                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
+                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class).orElseThrow(DependencyNotFoundException::new));
             }
 
         }

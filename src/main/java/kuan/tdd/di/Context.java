@@ -6,8 +6,6 @@ import jakarta.inject.Provider;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author qinxuekuan
@@ -27,7 +25,7 @@ public class Context {
         providers.put(type, (Provider<Type>) () -> {
             try {
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> get(p.getType()))
+                        .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
                         .toArray(Object[]::new);
                 return (Type) injectConstructor.newInstance(dependencies);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -54,11 +52,8 @@ public class Context {
 
     }
 
-    public <Type> Type get(Class<Type> type) {
-        if (!providers.containsKey(type)) {
-            throw new DependencyNotFoundException();
-        }
-        return (Type) providers.get(type).get();
+    public <Type> Optional<Type> get(Class<Type> type) {
+        return Optional.ofNullable(providers.get(type)).map(provider -> (Type) provider.get());
     }
 
 }
