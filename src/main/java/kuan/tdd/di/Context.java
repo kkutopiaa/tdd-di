@@ -2,6 +2,8 @@ package kuan.tdd.di;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import kuan.tdd.di.exception.DependencyNotFoundException;
+import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

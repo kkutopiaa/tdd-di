@@ -1,7 +1,11 @@
 package kuan.tdd.di;
 
 import jakarta.inject.Inject;
+import kuan.tdd.di.exception.CyclicDependenciesFoundException;
+import kuan.tdd.di.exception.DependencyNotFoundException;
+import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +36,7 @@ public class ContainerTest {
 
             context.bind(Component.class, instance);
 
-            assertSame(instance, context.get(Component.class).orElseThrow(DependencyNotFoundException::new));
+            assertSame(instance, context.get(Component.class).get());
         }
 
         // TODO abstract class
@@ -52,7 +56,7 @@ public class ContainerTest {
             public void should_bind_type_to_a_class_with_default_constructor() {
                 context.bind(Component.class, ComponentWithDefaultConstructor.class);
 
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
 
                 assertNotNull(instance);
                 assertTrue(instance instanceof ComponentWithDefaultConstructor);
@@ -65,7 +69,7 @@ public class ContainerTest {
 
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, dependency);
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
 
                 assertNotNull(instance);
                 assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
@@ -77,7 +81,7 @@ public class ContainerTest {
                 context.bind(Dependency.class, DependencyWithInjectConstructor.class);
                 context.bind(String.class, "indirect dependency");
 
-                Component instance = context.get(Component.class).orElseThrow(DependencyNotFoundException::new);
+                Component instance = context.get(Component.class).get();
                 assertNotNull(instance);
 
                 Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
@@ -102,7 +106,16 @@ public class ContainerTest {
             public void should_throw_exception_if_dependency_not_found() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
 
-                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class).orElseThrow(DependencyNotFoundException::new));
+                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
+            }
+
+            @Test
+            @Disabled
+            public void should_throw_exception_if_cyclic_dependencies_found() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyDependedOnComponent.class);
+
+                assertThrows(CyclicDependenciesFoundException.class, () -> context.get(Component.class));
             }
 
         }
@@ -186,5 +199,14 @@ class DependencyWithInjectConstructor implements Dependency {
 
     public String getDependency() {
         return dependency;
+    }
+}
+
+class DependencyDependedOnComponent implements Dependency {
+    private Component component;
+
+    @Inject
+    public DependencyDependedOnComponent(Component component) {
+        this.component = component;
     }
 }

@@ -1,4 +1,4 @@
-package kuan.tdd.di;
+package kuan.tdd.di.exception;
 
 /**
  * @author qinxuekuan
