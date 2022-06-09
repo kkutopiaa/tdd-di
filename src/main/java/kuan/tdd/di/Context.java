@@ -2,6 +2,7 @@ package kuan.tdd.di;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
 
@@ -24,16 +25,35 @@ public class Context {
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getConstructor(implementation);
 
-        providers.put(type, (Provider<Type>) () -> {
+        providers.put(type, new ConstructorInjectionProvider(injectConstructor));
+    }
+
+    class ConstructorInjectionProvider<T> implements Provider<T> {
+        private Constructor<T> injectConstructor;
+        private boolean constructing = false;
+
+        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
+            this.injectConstructor = injectConstructor;
+        }
+
+        @Override
+        public T get() {
+            if (constructing) {
+                throw new CyclicDependenciesFoundException();
+            }
             try {
+                constructing = true;
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> get(p.getType()).orElseThrow(DependencyNotFoundException::new))
+                        .map(p -> Context.this.get(p.getType()).orElseThrow(DependencyNotFoundException::new))
                         .toArray(Object[]::new);
-                return (Type) injectConstructor.newInstance(dependencies);
+                return (T) injectConstructor.newInstance(dependencies);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
+            } finally {
+                constructing = false;
             }
-        });
+        }
+
     }
 
     private <Type> Constructor<Type> getConstructor(Class<Type> implementation) {

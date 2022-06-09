@@ -110,7 +110,7 @@ public class ContainerTest {
             }
 
             @Test
-            @Disabled
+//            @Disabled
             public void should_throw_exception_if_cyclic_dependencies_found() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
                 context.bind(Dependency.class, DependencyDependedOnComponent.class);
