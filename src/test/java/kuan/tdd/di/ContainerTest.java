@@ -5,7 +5,6 @@ import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -118,6 +117,15 @@ public class ContainerTest {
                 assertThrows(CyclicDependenciesFoundException.class, () -> context.get(Component.class));
             }
 
+            @Test
+            public void should_throw_exception_if_transitive_cyclic_dependencies_found() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyDependedOnAnotherDependency.class);
+                context.bind(AnotherDependency.class, AnotherDependencyDependedOnComponent.class);
+
+                assertThrows(CyclicDependenciesFoundException.class, () -> context.get(Component.class));
+            }
+
         }
 
         @Nested
@@ -152,6 +160,10 @@ interface Component {
 }
 
 interface Dependency {
+
+}
+
+interface AnotherDependency {
 
 }
 
@@ -210,3 +222,23 @@ class DependencyDependedOnComponent implements Dependency {
         this.component = component;
     }
 }
+
+class DependencyDependedOnAnotherDependency implements Dependency {
+    private AnotherDependency anotherDependency;
+
+    @Inject
+    public DependencyDependedOnAnotherDependency(AnotherDependency anotherDependency) {
+        this.anotherDependency = anotherDependency;
+    }
+}
+
+class AnotherDependencyDependedOnComponent implements AnotherDependency {
+
+    private Component component;
+
+    @Inject
+    public AnotherDependencyDependedOnComponent(Component component) {
+        this.component = component;
+    }
+}
+
