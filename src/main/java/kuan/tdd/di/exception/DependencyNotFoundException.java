@@ -6,4 +6,15 @@ package kuan.tdd.di.exception;
  */
 public class DependencyNotFoundException extends RuntimeException {
 
+    private final Class<?> dependency;
+
+    public DependencyNotFoundException(Class<?> dependency) {
+        this.dependency = dependency;
+    }
+
+    public Class<?> getDependency() {
+        return dependency;
+    }
+
+
 }
