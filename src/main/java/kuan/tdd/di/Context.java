@@ -29,27 +29,29 @@ public class Context {
     }
 
     class ConstructorInjectionProvider<T> implements Provider<T> {
-        private final Class<T> component;
+        private final Class<T> componentType;
         private final Constructor<T> injectConstructor;
         private boolean constructing = false;
 
-        public ConstructorInjectionProvider(Class<T> component, Constructor<T> injectConstructor) {
-            this.component = component;
+        public ConstructorInjectionProvider(Class<T> componentType, Constructor<T> injectConstructor) {
+            this.componentType = componentType;
             this.injectConstructor = injectConstructor;
         }
 
         @Override
         public T get() {
             if (constructing) {
-                throw new CyclicDependenciesFoundException();
+                throw new CyclicDependenciesFoundException(componentType);
             }
             try {
                 constructing = true;
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
                         .map(p -> Context.this.get(p.getType())
-                                .orElseThrow(() -> new DependencyNotFoundException(component, p.getType())))
+                                .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
                         .toArray(Object[]::new);
                 return (T) injectConstructor.newInstance(dependencies);
+            } catch (CyclicDependenciesFoundException e) {
+                throw new CyclicDependenciesFoundException(componentType, e);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             } finally {
