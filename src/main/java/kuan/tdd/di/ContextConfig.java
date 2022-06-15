@@ -1,7 +1,6 @@
 package kuan.tdd.di;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
@@ -15,32 +14,34 @@ import java.util.*;
  * @date 2022/6/6
  */
 public class ContextConfig {
-
-    private final Map<Class<?>, Provider<?>> providers = new HashMap<>();
+    private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, (Provider<Type>) () -> instance);
+        providers.put(type, context -> instance);
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getConstructor(implementation);
-
         providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
     }
-
 
     public Context getContext() {
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
                 return Optional.ofNullable(providers.get(type))
-                        .map(provider -> (Type) provider.get());
+                        .map(provider -> (Type) provider.get(this));
             }
         };
     }
 
+    interface ComponentProvider<T> {
+        // ConstructorInjectionProvider 需要有 context 这个上下文（并不是每次去 getContext 的时候都是一个新的 Context），但 ContextConfig 又提供不了。
+        // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
+        T get(Context context);
+    }
 
-    class ConstructorInjectionProvider<T> implements Provider<T> {
+    class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
         private final Class<T> componentType;
         private final Constructor<T> injectConstructor;
         private boolean constructing = false;
@@ -51,14 +52,14 @@ public class ContextConfig {
         }
 
         @Override
-        public T get() {
+        public T get(Context context) {
             if (constructing) {
                 throw new CyclicDependenciesFoundException(componentType);
             }
             try {
                 constructing = true;
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> getContext().get(p.getType())
+                        .map(p -> context.get(p.getType())
                                 .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
                         .toArray(Object[]::new);
                 return (T) injectConstructor.newInstance(dependencies);
@@ -70,7 +71,6 @@ public class ContextConfig {
                 constructing = false;
             }
         }
-
     }
 
     private <Type> Constructor<Type> getConstructor(Class<Type> implementation) {
@@ -87,8 +87,6 @@ public class ContextConfig {
                 throw new IllegalComponentException();
             }
         });
-
-
     }
 
 
