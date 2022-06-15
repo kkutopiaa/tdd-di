@@ -14,7 +14,7 @@ import java.util.*;
  * @author qinxuekuan
  * @date 2022/6/6
  */
-public class ContextConfig implements Context {
+public class ContextConfig {
 
     private final Map<Class<?>, Provider<?>> providers = new HashMap<>();
 
@@ -40,11 +40,6 @@ public class ContextConfig implements Context {
     }
 
 
-    @Override
-    public <Type> Optional<Type> get(Class<Type> type) {
-        return getContext().get(type);
-    }
-
     class ConstructorInjectionProvider<T> implements Provider<T> {
         private final Class<T> componentType;
         private final Constructor<T> injectConstructor;
@@ -63,7 +58,7 @@ public class ContextConfig implements Context {
             try {
                 constructing = true;
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> ContextConfig.this.get(p.getType())
+                        .map(p -> getContext().get(p.getType())
                                 .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
                         .toArray(Object[]::new);
                 return (T) injectConstructor.newInstance(dependencies);
