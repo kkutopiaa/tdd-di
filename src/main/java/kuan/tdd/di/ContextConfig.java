@@ -7,7 +7,9 @@ import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author qinxuekuan
@@ -15,17 +17,30 @@ import java.util.*;
  */
 public class ContextConfig {
     private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
+    Map<Class<?>, List<Class<?>>> dependencies = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         providers.put(type, context -> instance);
+        dependencies.put(type, List.of());
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getConstructor(implementation);
         providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
+        dependencies.put(type, Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList()));
     }
 
     public Context getContext() {
+        // 检查是否存在依赖
+        for (Class<?> component : dependencies.keySet()) {
+            for (Class<?> dependency : dependencies.get(component)) {
+                if (!dependencies.containsKey(dependency)) {
+                    throw new DependencyNotFoundException(component, dependency);
+                }
+            }
+        }
+
+        // TODO 检查是否发生了循环依赖
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
