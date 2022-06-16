@@ -26,7 +26,7 @@ public class ContextConfig {
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getConstructor(implementation);
-        providers.put(type, new ConstructorInjectionProvider(type, injectConstructor));
+        providers.put(type, new ConstructorInjectionProvider(injectConstructor));
         dependencies.put(type, Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList()));
     }
 
@@ -66,11 +66,9 @@ public class ContextConfig {
     }
 
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
-        private final Class<T> componentType;
         private final Constructor<T> injectConstructor;
 
-        public ConstructorInjectionProvider(Class<T> componentType, Constructor<T> injectConstructor) {
-            this.componentType = componentType;
+        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
             this.injectConstructor = injectConstructor;
         }
 
