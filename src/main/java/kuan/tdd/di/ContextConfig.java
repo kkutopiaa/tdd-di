@@ -32,9 +32,7 @@ public class ContextConfig {
 
     public Context getContext() {
         // 检查是否存在依赖
-        for (Class<?> component : dependencies.keySet()) {
-            checkDependencies(component, new Stack<>());
-        }
+        dependencies.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         // TODO 检查是否发生了循环依赖
         return new Context() {
@@ -70,7 +68,6 @@ public class ContextConfig {
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
         private final Class<T> componentType;
         private final Constructor<T> injectConstructor;
-        private boolean constructing = false;
 
         public ConstructorInjectionProvider(Class<T> componentType, Constructor<T> injectConstructor) {
             this.componentType = componentType;
@@ -79,22 +76,13 @@ public class ContextConfig {
 
         @Override
         public T get(Context context) {
-            if (constructing) {
-                throw new CyclicDependenciesFoundException(componentType);
-            }
             try {
-                constructing = true;
                 Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                        .map(p -> context.get(p.getType())
-                                .orElseThrow(() -> new DependencyNotFoundException(componentType, p.getType())))
+                        .map(p -> context.get(p.getType()).get())
                         .toArray(Object[]::new);
                 return (T) injectConstructor.newInstance(dependencies);
-            } catch (CyclicDependenciesFoundException e) {
-                throw new CyclicDependenciesFoundException(componentType, e);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
-            } finally {
-                constructing = false;
             }
         }
     }

@@ -12,15 +12,6 @@ public class CyclicDependenciesFoundException extends RuntimeException {
 
     private final Set<Class<?>> components = new HashSet<>();
 
-    public CyclicDependenciesFoundException(Class<?> componentType) {
-        components.add(componentType);
-    }
-
-    public CyclicDependenciesFoundException(Class<?> componentType, CyclicDependenciesFoundException e) {
-        components.add(componentType);
-        components.addAll(e.components);
-    }
-
     public CyclicDependenciesFoundException(List<Class<?>> visiting) {
         components.addAll(visiting);
     }
