@@ -21,6 +21,10 @@ public class CyclicDependenciesFoundException extends RuntimeException {
         components.addAll(e.components);
     }
 
+    public CyclicDependenciesFoundException(List<Class<?>> visiting) {
+        components.addAll(visiting);
+    }
+
     public Class<?>[] getComponents() {
         return components.toArray(Class<?>[]::new);
     }

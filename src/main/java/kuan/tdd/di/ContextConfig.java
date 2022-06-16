@@ -33,11 +33,7 @@ public class ContextConfig {
     public Context getContext() {
         // 检查是否存在依赖
         for (Class<?> component : dependencies.keySet()) {
-            for (Class<?> dependency : dependencies.get(component)) {
-                if (!dependencies.containsKey(dependency)) {
-                    throw new DependencyNotFoundException(component, dependency);
-                }
-            }
+            checkDependencies(component, new Stack<>());
         }
 
         // TODO 检查是否发生了循环依赖
@@ -48,6 +44,21 @@ public class ContextConfig {
                         .map(provider -> (Type) provider.get(this));
             }
         };
+    }
+
+    public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
+        for (Class<?> dependency : dependencies.get(component)) {
+            if (!dependencies.containsKey(dependency)) {
+                throw new DependencyNotFoundException(component, dependency);
+            }
+            if (visiting.contains(dependency)) {
+                throw new CyclicDependenciesFoundException(visiting);
+            }
+            visiting.push(dependency);
+            checkDependencies(dependency, visiting);
+            visiting.pop();
+        }
+
     }
 
     interface ComponentProvider<T> {
