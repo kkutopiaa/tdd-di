@@ -17,24 +17,31 @@ import java.util.stream.Collectors;
  */
 public class ContextConfig {
     private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
-    Map<Class<?>, List<Class<?>>> dependencies = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, context -> instance);
-        dependencies.put(type, List.of());
+        providers.put(type, new ComponentProvider<Type>() {
+            @Override
+            public Type get(Context context) {
+                return instance;
+            }
+
+            @Override
+            public List<Class<?>> getDependencies() {
+                return List.of();
+            }
+        });
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
         Constructor<Implementation> injectConstructor = getConstructor(implementation);
         providers.put(type, new ConstructorInjectionProvider(injectConstructor));
-        dependencies.put(type, Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList()));
     }
 
     public Context getContext() {
         // 检查是否存在依赖
-        dependencies.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
+        // 检查是否发生了循环依赖
+        providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
-        // TODO 检查是否发生了循环依赖
         return new Context() {
             @Override
             public <Type> Optional<Type> get(Class<Type> type) {
@@ -45,8 +52,8 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Class<?> dependency : dependencies.get(component)) {
-            if (!dependencies.containsKey(dependency)) {
+        for (Class<?> dependency : providers.get(component).getDependencies()) {
+            if (!providers.containsKey(dependency)) {
                 throw new DependencyNotFoundException(component, dependency);
             }
             if (visiting.contains(dependency)) {
@@ -63,6 +70,8 @@ public class ContextConfig {
         // ConstructorInjectionProvider 需要有 context 这个上下文（并不是每次去 getContext 的时候都是一个新的 Context），但 ContextConfig 又提供不了。
         // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
         T get(Context context);
+
+        List<Class<?>> getDependencies();
     }
 
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
@@ -83,6 +92,12 @@ public class ContextConfig {
                 throw new RuntimeException(e);
             }
         }
+
+        @Override
+        public List<Class<?>> getDependencies() {
+            return Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList());
+        }
+
     }
 
     private <Type> Constructor<Type> getConstructor(Class<Type> implementation) {
