@@ -33,8 +33,7 @@ public class ContextConfig {
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
-        Constructor<Implementation> injectConstructor = getConstructor(implementation);
-        providers.put(type, new ConstructorInjectionProvider(injectConstructor));
+        providers.put(type, new ConstructorInjectionProvider<>(ConstructorInjectionProvider.getInjectConstructor(implementation)));
     }
 
     public Context getContext() {
@@ -81,6 +80,22 @@ public class ContextConfig {
             this.injectConstructor = injectConstructor;
         }
 
+        static private <Type> Constructor<Type> getInjectConstructor(Class<Type> implementation) {
+            List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
+                    .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
+            if (injectConstructors.size() > 1) {
+                throw new IllegalComponentException();
+            }
+
+            return (Constructor<Type>) injectConstructors.stream().findFirst().orElseGet(() -> {
+                try {
+                    return implementation.getConstructor();
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalComponentException();
+                }
+            });
+        }
+
         @Override
         public T get(Context context) {
             try {
@@ -98,22 +113,6 @@ public class ContextConfig {
             return Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList());
         }
 
-    }
-
-    private <Type> Constructor<Type> getConstructor(Class<Type> implementation) {
-        List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
-                .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
-        if (injectConstructors.size() > 1) {
-            throw new IllegalComponentException();
-        }
-
-        return (Constructor<Type>) injectConstructors.stream().findFirst().orElseGet(() -> {
-            try {
-                return implementation.getConstructor();
-            } catch (NoSuchMethodException e) {
-                throw new IllegalComponentException();
-            }
-        });
     }
 
 
