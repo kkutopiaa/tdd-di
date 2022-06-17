@@ -33,7 +33,7 @@ public class ContextConfig {
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
-        providers.put(type, new ConstructorInjectionProvider<>(ConstructorInjectionProvider.getInjectConstructor(implementation)));
+        providers.put(type, new ConstructorInjectionProvider<>(implementation));
     }
 
     public Context getContext() {
@@ -76,8 +76,8 @@ public class ContextConfig {
     class ConstructorInjectionProvider<T> implements ComponentProvider<T> {
         private final Constructor<T> injectConstructor;
 
-        public ConstructorInjectionProvider(Constructor<T> injectConstructor) {
-            this.injectConstructor = injectConstructor;
+        public ConstructorInjectionProvider(Class<T> component) {
+            injectConstructor = getInjectConstructor(component);
         }
 
         static private <Type> Constructor<Type> getInjectConstructor(Class<Type> implementation) {
