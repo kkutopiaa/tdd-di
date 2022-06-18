@@ -192,7 +192,6 @@ public class ContainerTest {
             @Test
             @Disabled
             public void should_create_component_with_injection_field() {
-
                 Context context = Mockito.mock(Context.class);
                 Dependency dependency = Mockito.mock(Dependency.class);
                 Mockito.when(context.get(eq(Dependency.class)))
@@ -204,6 +203,53 @@ public class ContainerTest {
 
                 assertSame(dependency, component.getDependency());
             }
+
+
+            // 依赖找不到的情况
+            @Test
+            @Disabled
+            public void should_throw_exception_when_field_dependency_missing() {
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+
+                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+            }
+
+            // 依赖找不到的情况。 对 ConstructorInjectionProvider 进行测试。
+            @Test
+            @Disabled
+            public void should_include_field_dependency_in_dependencies_for_not_found() {
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+            class DependencyWithFieldInjection implements Dependency {
+                @Inject
+                ComponentWithFieldInjection component;
+            }
+
+            // 循环依赖的情况
+            @Test
+            @Disabled
+            public void should_throw_exception_when_field_has_cyclic_dependencies() {
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+                config.bind(Dependency.class, DependencyWithFieldInjection.class);
+
+                assertThrows(CyclicDependenciesFoundException.class, () -> config.getContext());
+            }
+
+            // 循环依赖的情况， 对 ConstructorInjectionProvider 进行测试。
+            // 和依赖找不到的测试是完全一样的。 因为 ConstructorInjectionProvider 只是提供信息，并没有做实际功能，实际的功能都是在 ContextConfig 里去完成的。
+            @Test
+            @Disabled
+            public void should_include_field_dependency_in_dependencies_for_cyclic() {
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
 
         }
 
