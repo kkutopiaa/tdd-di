@@ -187,6 +187,14 @@ public class ContainerTest {
                 assertSame(dependency, component.getDependency());
             }
 
+            // ==================================================
+            // happy path 2 种测试策略的区别：
+            // config.getContext() 后，就认为了之前 bind 的信息永远是可以找到的，是不会发生依赖找不到的情况的。
+            // 而 mock 的方式，只是 mock 了依赖存在的情况。并不知道如果依赖不存在时，代码会发生什么样的情况。
+            // 尽管写代码的人知道不需要 mock 依赖不存在的情况，但这信息是隐含的，并不是直接传递出来的。 而 config.getContext() 的动作，所有依赖的情况都在前面 bind 的时候表现出来了。
+            // ==================================================
+
+
             // 第二种测试方式： 单元测试（严格意义上的）
             // 在拆解出的 ConstructorInjectionProvider 这个功能上下文中进行测试，，测试粒度会小一些。
             @Test
