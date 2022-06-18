@@ -160,7 +160,7 @@ public class ContainerTest {
         @Nested
         public class FieldInjection {
 
-            class ComponentWithFieldInjection{
+            static class ComponentWithFieldInjection{
                 @Inject
                 private Dependency dependency;
 
@@ -233,8 +233,6 @@ interface AnotherDependency {
 
 // inner class , static or non-static , default constructor , has some trouble...
 class ComponentWithDefaultConstructor implements Component {
-    public ComponentWithDefaultConstructor() {
-    }
 }
 
 class ComponentWithInjectConstructor implements Component {

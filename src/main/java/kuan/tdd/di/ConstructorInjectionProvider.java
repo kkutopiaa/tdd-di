@@ -30,7 +30,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
         return (Constructor<Type>) injectConstructors.stream().findFirst().orElseGet(() -> {
             try {
-                return implementation.getConstructor();
+                return implementation.getDeclaredConstructor();
             } catch (NoSuchMethodException e) {
                 throw new IllegalComponentException();
             }
