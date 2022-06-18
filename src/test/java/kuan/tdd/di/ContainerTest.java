@@ -8,13 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * @author qinxuekuan
@@ -171,9 +169,7 @@ public class ContainerTest {
                 }
             }
 
-            // 基于之前重构之后的代码，测试方式有多种选择。
-            // 第一种测试方式： 集成测试（严格意义上的）
-            // 还是在 ContextConfig 这个功能上下文中进行测试，测试粒度会大一些。
+            // happy path。
             @Test
             @Disabled
             public void should_inject_dependency_via_field() {
@@ -186,32 +182,6 @@ public class ContainerTest {
 
                 assertSame(dependency, component.getDependency());
             }
-
-            // ==================================================
-            // happy path 2 种测试策略的区别：
-            // config.getContext() 后，就认为了之前 bind 的信息永远是可以找到的，是不会发生依赖找不到的情况的。
-            // 而 mock 的方式，只是 mock 了依赖存在的情况。并不知道如果依赖不存在时，代码会发生什么样的情况。
-            // 尽管写代码的人知道不需要 mock 依赖不存在的情况，但这信息是隐含的，并不是直接传递出来的。 而 config.getContext() 的动作，所有依赖的情况都在前面 bind 的时候表现出来了。
-            // ==================================================
-
-
-            // 第二种测试方式： 单元测试（严格意义上的）
-            // 在拆解出的 ConstructorInjectionProvider 这个功能上下文中进行测试，，测试粒度会小一些。
-            @Test
-            @Disabled
-            public void should_create_component_with_injection_field() {
-                Context context = Mockito.mock(Context.class);
-                Dependency dependency = Mockito.mock(Dependency.class);
-                Mockito.when(context.get(eq(Dependency.class)))
-                        .thenReturn(Optional.of(dependency));
-
-                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-                ComponentWithFieldInjection component = provider.get(context);
-
-                assertSame(dependency, component.getDependency());
-            }
-
 
             // provider dependency information for field injection
             // 只要提供了足够的信息， ConfigContext 就会完成相应的对依赖异常情况的处理。
