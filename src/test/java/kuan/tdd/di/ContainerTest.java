@@ -206,17 +206,8 @@ public class ContainerTest {
 
 
             // provider dependency information for field injection
-
-            // 依赖找不到的情况
-            @Test
-            @Disabled
-            public void should_throw_exception_when_field_dependency_missing() {
-                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
-
-                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
-            }
-
-            // 依赖找不到的情况。 对 ConstructorInjectionProvider 进行测试。
+            // 只要提供了足够的信息， ConfigContext 就会完成相应的对依赖异常情况的处理。
+            // 依赖找不到的情况、循环依赖的 sad path 测试。
             @Test
             @Disabled
             public void should_include_field_dependency_in_dependencies_for_not_found() {
@@ -225,35 +216,6 @@ public class ContainerTest {
 
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
-
-            class DependencyWithFieldInjection implements Dependency {
-                @Inject
-                ComponentWithFieldInjection component;
-            }
-
-            // 循环依赖的情况
-            @Test
-            @Disabled
-            public void should_throw_exception_when_field_has_cyclic_dependencies() {
-                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
-                config.bind(Dependency.class, DependencyWithFieldInjection.class);
-
-                assertThrows(CyclicDependenciesFoundException.class, () -> config.getContext());
-            }
-
-            // 循环依赖的情况， 对 ConstructorInjectionProvider 进行测试。
-            // 和依赖找不到的测试是完全一样的。
-            // 因为 ConstructorInjectionProvider 只是提供信息，并没有做实际功能，实际的功能都是在 ContextConfig 里去完成的。
-            // 只要你提供了相应的组件信息，交给 ContextConfig， 如果有依赖找不到，循环依赖的情况，ContextConfig 就会给你报错。
-            @Test
-            @Disabled
-            public void should_include_field_dependency_in_dependencies_for_cyclic() {
-                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
-            }
-
 
         }
 
