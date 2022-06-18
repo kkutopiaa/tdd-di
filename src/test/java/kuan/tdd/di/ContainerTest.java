@@ -168,6 +168,10 @@ public class ContainerTest {
                 }
             }
 
+            static class SubclassWithFieldInjection extends ComponentWithFieldInjection {
+
+            }
+
             // happy path。
             @Test
             public void should_inject_dependency_via_field() {
@@ -177,6 +181,18 @@ public class ContainerTest {
                 config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
 
                 ComponentWithFieldInjection component = config.getContext().get(ComponentWithFieldInjection.class).get();
+
+                assertSame(dependency, component.getDependency());
+            }
+
+            @Test
+            public void should_inject_dependency_via_superclass_inject_field() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(SubclassWithFieldInjection.class, SubclassWithFieldInjection.class);
+
+                SubclassWithFieldInjection component = config.getContext().get(SubclassWithFieldInjection.class).get();
 
                 assertSame(dependency, component.getDependency());
             }
