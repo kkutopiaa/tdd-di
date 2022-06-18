@@ -171,7 +171,6 @@ public class ContainerTest {
 
             // happy path。
             @Test
-            @Disabled
             public void should_inject_dependency_via_field() {
                 Dependency dependency = new Dependency() {
                 };
