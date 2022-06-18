@@ -205,6 +205,8 @@ public class ContainerTest {
             }
 
 
+            // provider dependency information for field injection
+
             // 依赖找不到的情况
             @Test
             @Disabled
@@ -240,7 +242,9 @@ public class ContainerTest {
             }
 
             // 循环依赖的情况， 对 ConstructorInjectionProvider 进行测试。
-            // 和依赖找不到的测试是完全一样的。 因为 ConstructorInjectionProvider 只是提供信息，并没有做实际功能，实际的功能都是在 ContextConfig 里去完成的。
+            // 和依赖找不到的测试是完全一样的。
+            // 因为 ConstructorInjectionProvider 只是提供信息，并没有做实际功能，实际的功能都是在 ContextConfig 里去完成的。
+            // 只要你提供了相应的组件信息，交给 ContextConfig， 如果有依赖找不到，循环依赖的情况，ContextConfig 就会给你报错。
             @Test
             @Disabled
             public void should_include_field_dependency_in_dependencies_for_cyclic() {
