@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author qinxuekuan
@@ -63,7 +63,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType).collect(Collectors.toList());
+        return Stream.concat(Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType),
+                injectFields.stream().map(Field::getType)).toList();
     }
-
 }

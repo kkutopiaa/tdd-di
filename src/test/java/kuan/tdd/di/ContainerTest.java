@@ -5,7 +5,6 @@ import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -186,8 +185,7 @@ public class ContainerTest {
             // 只要提供了足够的信息， ConfigContext 就会完成相应的对依赖异常情况的处理。
             // 依赖找不到的情况、循环依赖的 sad path 测试。
             @Test
-            @Disabled
-            public void should_include_field_dependency_in_dependencies_for_not_found() {
+            public void should_include_field_dependency_in_dependencies() {
                 ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
                         new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
 
