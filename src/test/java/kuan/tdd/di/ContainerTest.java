@@ -250,7 +250,14 @@ public class ContainerTest {
                 InjectMethodWithDependency component = config.getContext().get(InjectMethodWithDependency.class).get();
 
                 assertSame(dependency, component.dependency);
+            }
 
+            @Test
+            public void should_include_dependencies_from_inject_method() {
+                ConstructorInjectionProvider<InjectMethodWithDependency> provider =
+                        new ConstructorInjectionProvider<>(InjectMethodWithDependency.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
 
