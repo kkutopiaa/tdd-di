@@ -6,6 +6,7 @@ import kuan.tdd.di.exception.IllegalComponentException;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -24,8 +25,15 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         injectMethods = getInjectMethods(component);
     }
 
-    private List<Method> getInjectMethods(Class<T> component) {
-        return Arrays.stream(component.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Inject.class)).toList();
+    static private <T> List<Method> getInjectMethods(Class<T> component) {
+        List<Method> injectMethods = new ArrayList<>();
+        Class<?> current = component;
+        while (current != Object.class) {
+            injectMethods.addAll(Arrays.stream(current.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Inject.class)).toList());
+            current = current.getSuperclass();
+        }
+        Collections.reverse(injectMethods);
+        return injectMethods;
     }
 
     static private <T> List<Field> getInjectFields(Class<T> component) {

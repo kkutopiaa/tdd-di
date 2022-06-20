@@ -260,6 +260,34 @@ public class ContainerTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
+            static class SuperClassWithInjectMethod{
+                int superCalled = 0;
+
+                @Inject
+                void install() {
+                    this.superCalled++;
+                }
+            }
+
+            static class SubclassWithInjectMethod extends SuperClassWithInjectMethod {
+                int subCalled = 0;
+
+                @Inject
+                void installAnother() {
+                    this.subCalled = super.superCalled + 1;
+                }
+            }
+
+            @Test
+            public void should_inject_dependencies_via_inject_method_from_superclass() {
+                config.bind(SubclassWithInjectMethod.class, SubclassWithInjectMethod.class);
+
+                SubclassWithInjectMethod component = config.getContext().get(SubclassWithInjectMethod.class).get();
+
+                assertEquals(1, component.superCalled);
+                assertEquals(2, component.subCalled);
+            }
+
 
 
         }
