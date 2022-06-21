@@ -33,12 +33,19 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
                     Arrays.stream(current.getDeclaredMethods())
                             .filter(m -> m.isAnnotationPresent(Inject.class))
                             .filter(m -> injectMethods.stream().noneMatch(subMethod -> isOverrideMethod(m, subMethod)))
+                            .filter(m -> hasMethodInSubclassWithOverrideAndNoInject(component, m))
                             .toList()
             );
             current = current.getSuperclass();
         }
         Collections.reverse(injectMethods);
         return injectMethods;
+    }
+
+    private static <T> boolean hasMethodInSubclassWithOverrideAndNoInject(Class<T> component, Method m) {
+        return Arrays.stream(component.getDeclaredMethods())
+                .filter(methodInSub -> !methodInSub.isAnnotationPresent(Inject.class))
+                .noneMatch(methodInSub -> isOverrideMethod(m, methodInSub));
     }
 
     private static boolean isOverrideMethod(Method m, Method subMethod) {
