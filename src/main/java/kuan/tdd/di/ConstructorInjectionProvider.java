@@ -20,6 +20,9 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     private final List<Method> injectMethods;
 
     public ConstructorInjectionProvider(Class<T> component) {
+        if (Modifier.isAbstract(component.getModifiers())) {
+            throw new IllegalComponentException();
+        }
         injectConstructor = getInjectConstructor(component);
         injectFields = getInjectFields(component);
         injectMethods = getInjectMethods(component);
