@@ -29,11 +29,20 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         List<Method> injectMethods = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            injectMethods.addAll(Arrays.stream(current.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Inject.class)).toList());
+            injectMethods.addAll(
+                    Arrays.stream(current.getDeclaredMethods())
+                            .filter(m -> m.isAnnotationPresent(Inject.class))
+                            .filter(m -> injectMethods.stream().noneMatch(subMethod -> isOverrideMethod(m, subMethod)))
+                            .toList()
+            );
             current = current.getSuperclass();
         }
         Collections.reverse(injectMethods);
         return injectMethods;
+    }
+
+    private static boolean isOverrideMethod(Method m, Method subMethod) {
+        return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
     }
 
     static private <T> List<Field> getInjectFields(Class<T> component) {
