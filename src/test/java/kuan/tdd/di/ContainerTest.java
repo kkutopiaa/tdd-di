@@ -344,6 +344,18 @@ public class ContainerTest {
                 assertEquals(0, component.superCalled);
             }
 
+            static class InjectMethodWithTypeParameter {
+                @Inject
+                <T> void install() {
+
+                }
+            }
+
+            @Test
+            public void should_throw_exception_if_inject_method_has_type_parameter() {
+                assertThrows(IllegalComponentException.class, () -> new ConstructorInjectionProvider<>(InjectMethodWithTypeParameter.class));
+            }
+
 
         }
 

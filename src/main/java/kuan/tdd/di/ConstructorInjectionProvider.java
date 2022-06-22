@@ -30,6 +30,9 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         if (injectFields.stream().anyMatch(f -> Modifier.isFinal(f.getModifiers()))) {
             throw new IllegalComponentException();
         }
+        if (injectMethods.stream().anyMatch(m -> m.getTypeParameters().length != 0)) {
+            throw new IllegalComponentException();
+        }
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
