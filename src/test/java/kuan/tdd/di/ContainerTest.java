@@ -39,7 +39,6 @@ public class ContainerTest {
             assertSame(instance, config.getContext().get(Component.class).get());
         }
 
-        // TODO abstract class
         abstract class AbstractComponent {
             @Inject
             public AbstractComponent() {
@@ -53,6 +52,10 @@ public class ContainerTest {
 
 
         // TODO interface
+        @Test
+        public void should_throw_exception_if_component_is_interface() {
+            assertThrows(IllegalComponentException.class, () -> new ConstructorInjectionProvider<>(Component.class));
+        }
 
 
         @Test
