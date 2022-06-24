@@ -160,14 +160,21 @@ public class ContainerTest {
             @Test
             public void should_throw_exception_if_multi_inject_constructors_provided() {
                 assertThrows(IllegalComponentException.class,
-                        () -> config.bind(Component.class, ComponentWithMultiInjectConstructors.class));
+                        () -> new ConstructorInjectionProvider<>(ComponentWithMultiInjectConstructors.class));
             }
 
             @Test
             public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
                 assertThrows(IllegalComponentException.class,
-                        () -> config.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class));
+                        () -> new ConstructorInjectionProvider<>(ComponentWithNoInjectConstructorNorDefaultConstructor.class));
             }
+
+            @Test
+            public void should_include_dependency_from_inject_constructor() {
+                ConstructorInjectionProvider<ComponentWithInjectConstructor> provider = new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class);
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
 
         }
 
