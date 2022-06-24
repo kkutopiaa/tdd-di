@@ -63,57 +63,7 @@ public class ContainerTest {
         }
 
         @Nested
-        public class ConstructorInjection {
-            @Test
-            public void should_bind_type_to_a_class_with_default_constructor() {
-                config.bind(Component.class, ComponentWithDefaultConstructor.class);
-
-                Component instance = config.getContext().get(Component.class).get();
-
-                assertNotNull(instance);
-                assertTrue(instance instanceof ComponentWithDefaultConstructor);
-            }
-
-            @Test
-            public void should_bind_type_to_a_class_with_inject_constructor() {
-                Dependency dependency = new Dependency() {
-                };
-
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, dependency);
-                Component instance = config.getContext().get(Component.class).get();
-
-                assertNotNull(instance);
-                assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
-            }
-
-            @Test
-            public void should_bind_type_to_a_class_with_transitive_dependencies() {
-                config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyWithInjectConstructor.class);
-                config.bind(String.class, "indirect dependency");
-
-                Component instance = config.getContext().get(Component.class).get();
-                assertNotNull(instance);
-
-                Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
-                assertNotNull(dependency);
-
-                assertEquals("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
-            }
-
-            @Test
-            public void should_throw_exception_if_multi_inject_constructors_provided() {
-                assertThrows(IllegalComponentException.class,
-                        () -> config.bind(Component.class, ComponentWithMultiInjectConstructors.class));
-            }
-
-            @Test
-            public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
-                assertThrows(IllegalComponentException.class,
-                        () -> config.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class));
-            }
-
+        public class DependencyCheck {
             @Test
             public void should_throw_exception_if_dependency_not_found() {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
@@ -164,6 +114,59 @@ public class ContainerTest {
                 assertTrue(components.contains(Component.class));
                 assertTrue(components.contains(Dependency.class));
                 assertTrue(components.contains(AnotherDependency.class));
+            }
+        }
+
+        @Nested
+        public class ConstructorInjection {
+            @Test
+            public void should_bind_type_to_a_class_with_default_constructor() {
+                config.bind(Component.class, ComponentWithDefaultConstructor.class);
+
+                Component instance = config.getContext().get(Component.class).get();
+
+                assertNotNull(instance);
+                assertTrue(instance instanceof ComponentWithDefaultConstructor);
+            }
+
+            @Test
+            public void should_bind_type_to_a_class_with_inject_constructor() {
+                Dependency dependency = new Dependency() {
+                };
+
+                config.bind(Component.class, ComponentWithInjectConstructor.class);
+                config.bind(Dependency.class, dependency);
+                Component instance = config.getContext().get(Component.class).get();
+
+                assertNotNull(instance);
+                assertSame(dependency, ((ComponentWithInjectConstructor) instance).getDependency());
+            }
+
+            @Test
+            public void should_bind_type_to_a_class_with_transitive_dependencies() {
+                config.bind(Component.class, ComponentWithInjectConstructor.class);
+                config.bind(Dependency.class, DependencyWithInjectConstructor.class);
+                config.bind(String.class, "indirect dependency");
+
+                Component instance = config.getContext().get(Component.class).get();
+                assertNotNull(instance);
+
+                Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
+                assertNotNull(dependency);
+
+                assertEquals("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
+            }
+
+            @Test
+            public void should_throw_exception_if_multi_inject_constructors_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(Component.class, ComponentWithMultiInjectConstructors.class));
+            }
+
+            @Test
+            public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(Component.class, ComponentWithNoInjectConstructorNorDefaultConstructor.class));
             }
 
         }
