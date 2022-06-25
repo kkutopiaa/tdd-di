@@ -39,8 +39,14 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
-        List<Method> injectMethods = new ArrayList<>();
         BiFunction<List<Method>, Class<?>, List<Method>> function = (methods, current) -> getC(component, methods, current);
+        List<Method> injectMethods = traverse1(component, function);
+        Collections.reverse(injectMethods);
+        return injectMethods;
+    }
+
+    private static <T> List<Method> traverse1(Class<T> component, BiFunction<List<Method>, Class<?>, List<Method>> function) {
+        List<Method> injectMethods = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
             injectMethods.addAll(
@@ -48,7 +54,6 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
             );
             current = current.getSuperclass();
         }
-        Collections.reverse(injectMethods);
         return injectMethods;
     }
 
@@ -61,8 +66,12 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
 
     static private <T> List<Field> getInjectFields(Class<T> component) {
-        List<Field> injectFields = new ArrayList<>();
         BiFunction<List<Field>, Class<?>, List<Field>> function = (fields, current) -> getC(fields, current);
+        return traverse(component, function);
+    }
+
+    private static <T> List<Field> traverse(Class<T> component, BiFunction<List<Field>, Class<?>, List<Field>> function) {
+        List<Field> injectFields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
             injectFields.addAll(
