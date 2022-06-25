@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
+
 /**
  * @author qinxuekuan
  * @date 2022/6/17
@@ -40,8 +42,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         Class<?> current = component;
         while (current != Object.class) {
             injectMethods.addAll(
-                    Arrays.stream(current.getDeclaredMethods())
-                            .filter(m -> m.isAnnotationPresent(Inject.class))
+                    injectable(current.getDeclaredMethods())
                             .filter(m -> injectMethods.stream().noneMatch(subMethod -> isOverrideMethod(m, subMethod)))
                             .filter(m -> hasMethodInSubclassWithOverrideAndNoInject(component, m))
                             .toList()
@@ -58,18 +59,16 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         Class<?> current = component;
         while (current != Object.class) {
             injectFields.addAll(
-                    Arrays.stream(current.getDeclaredFields())
-                            .filter(f -> f.isAnnotationPresent(Inject.class))
-                            .toList()
+                    injectable(current.getDeclaredFields()).toList()
             );
             current = current.getSuperclass();
         }
         return injectFields;
     }
 
+
     static private <Type> Constructor<Type> getInjectConstructor(Class<Type> implementation) {
-        List<Constructor<?>> injectConstructors = Arrays.stream(implementation.getConstructors())
-                .filter(c -> c.isAnnotationPresent(Inject.class)).toList();
+        List<Constructor<?>> injectConstructors = injectable(implementation.getConstructors()).toList();
         if (injectConstructors.size() > 1) {
             throw new IllegalComponentException();
         }
@@ -81,7 +80,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     @Override
     public T get(Context context) {
         try {
-            Object[] dependencies = Arrays.stream(injectConstructor.getParameterTypes())
+            Object[] dependencies = stream(injectConstructor.getParameterTypes())
                     .map(t -> context.get(t).get())
                     .toArray(Object[]::new);
             T instance = injectConstructor.newInstance(dependencies);
@@ -91,7 +90,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
             }
             for (Method method : injectMethods) {
                 method.invoke(instance,
-                        Arrays.stream(method.getParameterTypes())
+                        stream(method.getParameterTypes())
                                 .map(t -> context.get(t).get())
                                 .toArray(Object[]::new));
             }
@@ -103,15 +102,20 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Stream.concat(Stream.concat(Arrays.stream(injectConstructor.getParameterTypes()),
+        return Stream.concat(Stream.concat(stream(injectConstructor.getParameterTypes()),
                                 injectFields.stream().map(Field::getType)),
-                        injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes())))
+                        injectMethods.stream().flatMap(m -> stream(m.getParameterTypes())))
                 .toList();
     }
 
 
+
+    private static <T extends AnnotatedElement> Stream<T> injectable(T[] declaredFields) {
+        return stream(declaredFields).filter(f -> f.isAnnotationPresent(Inject.class));
+    }
+
     private static <T> boolean hasMethodInSubclassWithOverrideAndNoInject(Class<T> component, Method m) {
-        return Arrays.stream(component.getDeclaredMethods())
+        return stream(component.getDeclaredMethods())
                 .filter(methodInSub -> !methodInSub.isAnnotationPresent(Inject.class))
                 .noneMatch(methodInSub -> isOverrideMethod(m, methodInSub));
     }
