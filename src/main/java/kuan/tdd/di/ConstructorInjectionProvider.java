@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -39,10 +40,11 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
         List<Method> injectMethods = new ArrayList<>();
+        BiFunction<List<Method>, Class<?>, List<Method>> function = (methods, current) -> getC(component, methods, current);
         Class<?> current = component;
         while (current != Object.class) {
             injectMethods.addAll(
-                    getC(component, injectMethods, current)
+                    function.apply(injectMethods, current)
             );
             current = current.getSuperclass();
         }
@@ -60,10 +62,11 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     static private <T> List<Field> getInjectFields(Class<T> component) {
         List<Field> injectFields = new ArrayList<>();
+        BiFunction<List<Field>, Class<?>, List<Field>> function = (fields, current) -> getC(fields, current);
         Class<?> current = component;
         while (current != Object.class) {
             injectFields.addAll(
-                    getC(injectFields,current)
+                    function.apply(injectFields, current)
             );
             current = current.getSuperclass();
         }
