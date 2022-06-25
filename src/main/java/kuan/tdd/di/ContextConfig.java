@@ -13,17 +13,7 @@ public class ContextConfig {
     private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, new ComponentProvider<Type>() {
-            @Override
-            public Type get(Context context) {
-                return instance;
-            }
-
-            @Override
-            public List<Class<?>> getDependencies() {
-                return List.of();
-            }
-        });
+        providers.put(type, (ComponentProvider<Type>) context -> instance);
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
@@ -64,7 +54,9 @@ public class ContextConfig {
         // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
         T get(Context context);
 
-        List<Class<?>> getDependencies();
+        default List<Class<?>> getDependencies(){
+            return List.of();
+        }
     }
 
 
