@@ -25,7 +25,6 @@ class InjectionTest {
     private final Dependency dependency = mock(Dependency.class);
     private final Context context = mock(Context.class);
 
-
     @BeforeEach
     public void setup() {
         Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
@@ -122,56 +121,61 @@ class InjectionTest {
     @Nested
     public class FieldInjection {
 
-        static class ComponentWithFieldInjection {
-            @Inject
-            private Dependency dependency;
+        @Nested
+        class Injection {
+            static class ComponentWithFieldInjection {
+                @Inject
+                private Dependency dependency;
 
-            public Dependency getDependency() {
-                return dependency;
+                public Dependency getDependency() {
+                    return dependency;
+                }
+            }
+
+            static class SubclassWithFieldInjection extends ComponentWithFieldInjection {
+
+            }
+
+            // happy path。
+            @Test
+            public void should_inject_dependency_via_field() {
+                ComponentWithFieldInjection component =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class).get(context);
+
+                assertSame(dependency, component.getDependency());
+            }
+
+            @Test
+            public void should_inject_dependency_via_superclass_inject_field() {
+                SubclassWithFieldInjection component =
+                        new ConstructorInjectionProvider<>(SubclassWithFieldInjection.class).get(context);
+                assertSame(dependency, component.getDependency());
+            }
+
+            // provider dependency information for field injection
+            // 只要提供了足够的信息， ConfigContext 就会完成相应的对依赖异常情况的处理。
+            // 依赖找不到的情况、循环依赖的 sad path 测试。
+            @Test
+            public void should_include_field_dependency_in_dependencies() {
+                ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
         }
 
-        static class SubclassWithFieldInjection extends ComponentWithFieldInjection {
+        @Nested
+        class IllegalInjectFields {
+            static class FinalInjectField {
+                @Inject
+                final Dependency dependency = null;
+            }
 
-        }
-
-        // happy path。
-        @Test
-        public void should_inject_dependency_via_field() {
-            ComponentWithFieldInjection component =
-                    new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class).get(context);
-
-            assertSame(dependency, component.getDependency());
-        }
-
-        @Test
-        public void should_inject_dependency_via_superclass_inject_field() {
-            SubclassWithFieldInjection component =
-                    new ConstructorInjectionProvider<>(SubclassWithFieldInjection.class).get(context);
-            assertSame(dependency, component.getDependency());
-        }
-
-        // provider dependency information for field injection
-        // 只要提供了足够的信息， ConfigContext 就会完成相应的对依赖异常情况的处理。
-        // 依赖找不到的情况、循环依赖的 sad path 测试。
-        @Test
-        public void should_include_field_dependency_in_dependencies() {
-            ConstructorInjectionProvider<ComponentWithFieldInjection> provider =
-                    new ConstructorInjectionProvider<>(ComponentWithFieldInjection.class);
-
-            assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
-        }
-
-
-        static class FinalInjectField {
-            @Inject
-            final Dependency dependency = null;
-        }
-
-        @Test
-        public void should_throw_exception_if_inject_field_is_final() {
-            assertThrows(IllegalComponentException.class,
-                    () -> new ConstructorInjectionProvider<>(FinalInjectField.class));
+            @Test
+            public void should_throw_exception_if_inject_field_is_final() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(FinalInjectField.class));
+            }
         }
 
     }
