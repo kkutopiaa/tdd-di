@@ -83,7 +83,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
             T instance = injectConstructor.newInstance(toDependencies(context, injectConstructor));
             for (Field field : injectFields) {
                 field.setAccessible(true);
-                field.set(instance, context.get(field.getType()).get());
+                field.set(instance, toDependency(context, field));
             }
             for (Method method : injectMethods) {
                 method.invoke(instance, toDependencies(context, method));
@@ -122,7 +122,11 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
     }
 
-    private Object[] toDependencies(Context context, Executable executable) {
+    private static Object toDependency(Context context, Field field) {
+        return context.get(field.getType()).get();
+    }
+
+    private static Object[] toDependencies(Context context, Executable executable) {
         return stream(executable.getParameterTypes())
                 .map(t -> context.get(t).get())
                 .toArray(Object[]::new);
