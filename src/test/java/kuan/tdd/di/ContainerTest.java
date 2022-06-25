@@ -39,22 +39,6 @@ public class ContainerTest {
             assertSame(instance, config.getContext().get(Component.class).get());
         }
 
-        abstract class AbstractComponent {
-            @Inject
-            public AbstractComponent() {
-            }
-        }
-
-        @Test
-        public void should_throw_exception_if_component_is_abstract() {
-            assertThrows(IllegalComponentException.class, () -> new ConstructorInjectionProvider<>(AbstractComponent.class));
-        }
-
-        @Test
-        public void should_throw_exception_if_component_is_interface() {
-            assertThrows(IllegalComponentException.class, () -> new ConstructorInjectionProvider<>(Component.class));
-        }
-
 
         @Test
         public void should_return_empty_if_component_not_defined() {

@@ -33,58 +33,87 @@ class InjectionTest {
 
     @Nested
     public class ConstructorInjection {
-        @Test
-        public void should_call_default_constructor_if_on_inject_constructor() {
-            ComponentWithDefaultConstructor instance =
-                    new ConstructorInjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
 
-            assertNotNull(instance);
+        @Nested
+        class Injection {
+
+            @Test
+            public void should_call_default_constructor_if_on_inject_constructor() {
+                ComponentWithDefaultConstructor instance =
+                        new ConstructorInjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
+
+                assertNotNull(instance);
+            }
+
+            @Test
+            public void should_inject_dependency_via_inject_constructor() {
+                ComponentWithInjectConstructor instance =
+                        new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
+
+                assertNotNull(instance);
+                assertSame(dependency, instance.getDependency());
+            }
+
+            // should_bind_type_to_a_class_with_transitive_dependencies 这个测试，
+            // 实际和上面这个测试 should_bind_type_to_a_class_with_inject_constructor(should_inject_dependency_via_inject_constructor) 是一样的，
+            // 也就是说，可以删除掉这个测试了。 是因为架构决策及测试粒度上的变化导致的。
+            @Test
+            @Disabled
+            public void should_bind_type_to_a_class_with_transitive_dependencies() {
+                when(context.get(eq(Dependency.class))).thenReturn(
+                        Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
+                );
+                ComponentWithInjectConstructor instance =
+                        new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
+
+                assertNotNull(instance);
+
+                Dependency dependency = instance.getDependency();
+                assertNotNull(dependency);
+            }
+
+            @Test
+            public void should_include_dependency_from_inject_constructor() {
+                ConstructorInjectionProvider<ComponentWithInjectConstructor> provider =
+                        new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class);
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
         }
 
-        @Test
-        public void should_inject_dependency_via_inject_constructor() {
-            ComponentWithInjectConstructor instance =
-                    new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
-            assertNotNull(instance);
-            assertSame(dependency, instance.getDependency());
-        }
+        @Nested
+        class IllegalInjectConstructors {
 
-        // should_bind_type_to_a_class_with_transitive_dependencies 这个测试，
-        // 实际和上面这个测试 should_bind_type_to_a_class_with_inject_constructor(should_inject_dependency_via_inject_constructor) 是一样的，
-        // 也就是说，可以删除掉这个测试了。 是因为架构决策及测试粒度上的变化导致的。
-        @Test
-        @Disabled
-        public void should_bind_type_to_a_class_with_transitive_dependencies() {
-            when(context.get(eq(Dependency.class))).thenReturn(
-                    Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
-            );
-            ComponentWithInjectConstructor instance =
-                    new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
+            @Test
+            public void should_throw_exception_if_multi_inject_constructors_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(ComponentWithMultiInjectConstructors.class));
+            }
 
-            assertNotNull(instance);
+            @Test
+            public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(ComponentWithNoInjectConstructorNorDefaultConstructor.class));
+            }
 
-            Dependency dependency = instance.getDependency();
-            assertNotNull(dependency);
-        }
 
-        @Test
-        public void should_throw_exception_if_multi_inject_constructors_provided() {
-            assertThrows(IllegalComponentException.class,
-                    () -> new ConstructorInjectionProvider<>(ComponentWithMultiInjectConstructors.class));
-        }
+            abstract class AbstractComponent {
+                @Inject
+                public AbstractComponent() {
+                }
+            }
 
-        @Test
-        public void should_throw_exception_if_no_inject_nor_default_constructor_provided() {
-            assertThrows(IllegalComponentException.class,
-                    () -> new ConstructorInjectionProvider<>(ComponentWithNoInjectConstructorNorDefaultConstructor.class));
-        }
+            @Test
+            public void should_throw_exception_if_component_is_abstract() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(AbstractComponent.class));
+            }
 
-        @Test
-        public void should_include_dependency_from_inject_constructor() {
-            ConstructorInjectionProvider<ComponentWithInjectConstructor> provider =
-                    new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class);
-            assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            @Test
+            public void should_throw_exception_if_component_is_interface() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(Component.class));
+            }
         }
 
 
