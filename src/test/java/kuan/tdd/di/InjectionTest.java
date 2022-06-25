@@ -3,6 +3,7 @@ package kuan.tdd.di;
 import jakarta.inject.Inject;
 import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,7 +34,7 @@ class InjectionTest {
     @Nested
     public class ConstructorInjection {
         @Test
-        public void should_bind_type_to_a_class_with_default_constructor() {
+        public void should_call_default_constructor_if_on_inject_constructor() {
             ComponentWithDefaultConstructor instance =
                     new ConstructorInjectionProvider<>(ComponentWithDefaultConstructor.class).get(context);
 
@@ -41,7 +42,7 @@ class InjectionTest {
         }
 
         @Test
-        public void should_bind_type_to_a_class_with_inject_constructor() {
+        public void should_inject_dependency_via_inject_constructor() {
             ComponentWithInjectConstructor instance =
                     new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
@@ -50,9 +51,10 @@ class InjectionTest {
         }
 
         // should_bind_type_to_a_class_with_transitive_dependencies 这个测试，
-        // 实际和上面这个测试 should_bind_type_to_a_class_with_inject_constructor 是一样的，
+        // 实际和上面这个测试 should_bind_type_to_a_class_with_inject_constructor(should_inject_dependency_via_inject_constructor) 是一样的，
         // 也就是说，可以删除掉这个测试了。 是因为架构决策及测试粒度上的变化导致的。
         @Test
+        @Disabled
         public void should_bind_type_to_a_class_with_transitive_dependencies() {
             when(context.get(eq(Dependency.class))).thenReturn(
                     Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
