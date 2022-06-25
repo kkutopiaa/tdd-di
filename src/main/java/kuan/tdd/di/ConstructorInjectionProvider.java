@@ -40,7 +40,7 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
         BiFunction<List<Method>, Class<?>, List<Method>> function = (methods, current) -> getC(component, methods, current);
-        List<Method> injectMethods = traverse1(component, function);
+        List<Method> injectMethods = traverse(component, function);
         Collections.reverse(injectMethods);
         return injectMethods;
     }
@@ -70,8 +70,8 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         return traverse(component, function);
     }
 
-    private static <T> List<Field> traverse(Class<T> component, BiFunction<List<Field>, Class<?>, List<Field>> function) {
-        List<Field> injectFields = new ArrayList<>();
+    private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> function) {
+        List<T> injectFields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
             injectFields.addAll(
