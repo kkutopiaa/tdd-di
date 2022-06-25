@@ -183,117 +183,121 @@ class InjectionTest {
     @Nested
     public class MethodInjection {
 
-        static class InjectMethodWithNoDependency {
-            boolean called = false;
+        @Nested
+        class Injection {
+            static class InjectMethodWithNoDependency {
+                boolean called = false;
 
-            @Inject
-            void install() {
-                this.called = true;
+                @Inject
+                void install() {
+                    this.called = true;
+                }
+            }
+
+            @Test
+            public void should_call_inject_method_even_if_no_dependency_declared() {
+                InjectMethodWithNoDependency component =
+                        new ConstructorInjectionProvider<>(InjectMethodWithNoDependency.class).get(context);
+                assertTrue(component.called);
+            }
+
+            static class InjectMethodWithDependency {
+                Dependency dependency;
+
+                @Inject
+                void install(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_dependency_via_inject_method() {
+                InjectMethodWithDependency component =
+                        new ConstructorInjectionProvider<>(InjectMethodWithDependency.class).get(context);
+
+                assertSame(dependency, component.dependency);
+            }
+
+            @Test
+            public void should_include_dependencies_from_inject_method() {
+                ConstructorInjectionProvider<InjectMethodWithDependency> provider =
+                        new ConstructorInjectionProvider<>(InjectMethodWithDependency.class);
+
+                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+            static class SuperClassWithInjectMethod {
+                int superCalled = 0;
+
+                @Inject
+                void install() {
+                    this.superCalled++;
+                }
+            }
+
+            static class SubclassWithInjectMethod extends SuperClassWithInjectMethod {
+                int subCalled = 0;
+
+                @Inject
+                void installAnother() {
+                    this.subCalled = super.superCalled + 1;
+                }
+            }
+
+            @Test
+            public void should_inject_dependencies_via_inject_method_from_superclass() {
+                SubclassWithInjectMethod component =
+                        new ConstructorInjectionProvider<>(SubclassWithInjectMethod.class).get(context);
+                assertEquals(1, component.superCalled);
+                assertEquals(2, component.subCalled);
+            }
+
+            static class SubclassOverrideSuperClassWithInject extends SuperClassWithInjectMethod {
+                @Inject
+                @Override
+                void install() {
+                    super.install();
+                }
+            }
+
+            @Test
+            public void should_only_call_once_if_subclass_override_inject_method_with_inject() {
+                SubclassOverrideSuperClassWithInject component =
+                        new ConstructorInjectionProvider<>(SubclassOverrideSuperClassWithInject.class).get(context);
+
+                assertEquals(1, component.superCalled);
+            }
+
+            static class SubclassOverrideSuperClassWithNoInject extends SuperClassWithInjectMethod {
+                @Override
+                void install() {
+                    super.install();
+                }
+            }
+
+            @Test
+            public void should_not_call_inject_method_if_override_with_no_inject() {
+                SubclassOverrideSuperClassWithNoInject component =
+                        new ConstructorInjectionProvider<>(SubclassOverrideSuperClassWithNoInject.class).get(context);
+
+                assertEquals(0, component.superCalled);
             }
         }
 
-        @Test
-        public void should_call_inject_method_even_if_no_dependency_declared() {
-            InjectMethodWithNoDependency component =
-                    new ConstructorInjectionProvider<>(InjectMethodWithNoDependency.class).get(context);
-            assertTrue(component.called);
-        }
+        @Nested
+        class IllegalInjectMethods {
+            static class InjectMethodWithTypeParameter {
+                @Inject
+                <T> void install() {
 
-        static class InjectMethodWithDependency {
-            Dependency dependency;
-
-            @Inject
-            void install(Dependency dependency) {
-                this.dependency = dependency;
+                }
             }
-        }
 
-        @Test
-        public void should_inject_dependency_via_inject_method() {
-
-
-            InjectMethodWithDependency component =
-                    new ConstructorInjectionProvider<>(InjectMethodWithDependency.class).get(context);
-
-            assertSame(dependency, component.dependency);
-        }
-
-        @Test
-        public void should_include_dependencies_from_inject_method() {
-            ConstructorInjectionProvider<InjectMethodWithDependency> provider =
-                    new ConstructorInjectionProvider<>(InjectMethodWithDependency.class);
-
-            assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
-        }
-
-        static class SuperClassWithInjectMethod {
-            int superCalled = 0;
-
-            @Inject
-            void install() {
-                this.superCalled++;
+            @Test
+            public void should_throw_exception_if_inject_method_has_type_parameter() {
+                assertThrows(IllegalComponentException.class,
+                        () -> new ConstructorInjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
-        }
-
-        static class SubclassWithInjectMethod extends SuperClassWithInjectMethod {
-            int subCalled = 0;
-
-            @Inject
-            void installAnother() {
-                this.subCalled = super.superCalled + 1;
-            }
-        }
-
-        @Test
-        public void should_inject_dependencies_via_inject_method_from_superclass() {
-            SubclassWithInjectMethod component =
-                    new ConstructorInjectionProvider<>(SubclassWithInjectMethod.class).get(context);
-            assertEquals(1, component.superCalled);
-            assertEquals(2, component.subCalled);
-        }
-
-        static class SubclassOverrideSuperClassWithInject extends SuperClassWithInjectMethod {
-            @Inject
-            @Override
-            void install() {
-                super.install();
-            }
-        }
-
-        @Test
-        public void should_only_call_once_if_subclass_override_inject_method_with_inject() {
-            SubclassOverrideSuperClassWithInject component =
-                    new ConstructorInjectionProvider<>(SubclassOverrideSuperClassWithInject.class).get(context);
-
-            assertEquals(1, component.superCalled);
-        }
-
-        static class SubclassOverrideSuperClassWithNoInject extends SuperClassWithInjectMethod {
-            @Override
-            void install() {
-                super.install();
-            }
-        }
-
-        @Test
-        public void should_not_call_inject_method_if_override_with_no_inject() {
-            SubclassOverrideSuperClassWithNoInject component =
-                    new ConstructorInjectionProvider<>(SubclassOverrideSuperClassWithNoInject.class).get(context);
-
-            assertEquals(0, component.superCalled);
-        }
-
-        static class InjectMethodWithTypeParameter {
-            @Inject
-            <T> void install() {
-
-            }
-        }
-
-        @Test
-        public void should_throw_exception_if_inject_method_has_type_parameter() {
-            assertThrows(IllegalComponentException.class,
-                    () -> new ConstructorInjectionProvider<>(InjectMethodWithTypeParameter.class));
         }
     }
 }
