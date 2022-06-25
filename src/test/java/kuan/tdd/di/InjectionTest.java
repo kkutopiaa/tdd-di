@@ -12,6 +12,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author qinxuekuan
@@ -54,14 +55,15 @@ class InjectionTest {
 
         @Test
         public void should_bind_type_to_a_class_with_transitive_dependencies() {
-            config.bind(Component.class, ComponentWithInjectConstructor.class);
-            config.bind(Dependency.class, DependencyWithInjectConstructor.class);
-            config.bind(String.class, "indirect dependency");
+            when(context.get(eq(Dependency.class))).thenReturn(
+                    Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
+            );
+            ComponentWithInjectConstructor instance =
+                    new ConstructorInjectionProvider<>(ComponentWithInjectConstructor.class).get(context);
 
-            Component instance = config.getContext().get(Component.class).get();
             assertNotNull(instance);
 
-            Dependency dependency = ((ComponentWithInjectConstructor) instance).getDependency();
+            Dependency dependency = instance.getDependency();
             assertNotNull(dependency);
 
             assertEquals("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
