@@ -49,6 +49,9 @@ class InjectionTest {
             assertSame(dependency, instance.getDependency());
         }
 
+        // should_bind_type_to_a_class_with_transitive_dependencies 这个测试，
+        // 实际和上面这个测试 should_bind_type_to_a_class_with_inject_constructor 是一样的，
+        // 也就是说，可以删除掉这个测试了。 是因为架构决策及测试粒度上的变化导致的。
         @Test
         public void should_bind_type_to_a_class_with_transitive_dependencies() {
             when(context.get(eq(Dependency.class))).thenReturn(
@@ -61,8 +64,6 @@ class InjectionTest {
 
             Dependency dependency = instance.getDependency();
             assertNotNull(dependency);
-
-            assertEquals("indirect dependency", ((DependencyWithInjectConstructor) dependency).getDependency());
         }
 
         @Test
