@@ -80,19 +80,13 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     @Override
     public T get(Context context) {
         try {
-            Object[] dependencies = stream(injectConstructor.getParameterTypes())
-                    .map(t -> context.get(t).get())
-                    .toArray(Object[]::new);
-            T instance = injectConstructor.newInstance(dependencies);
+            T instance = injectConstructor.newInstance(toDependencies(context, injectConstructor));
             for (Field field : injectFields) {
                 field.setAccessible(true);
                 field.set(instance, context.get(field.getType()).get());
             }
             for (Method method : injectMethods) {
-                method.invoke(instance,
-                        stream(method.getParameterTypes())
-                                .map(t -> context.get(t).get())
-                                .toArray(Object[]::new));
+                method.invoke(instance, toDependencies(context, method));
             }
             return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -126,6 +120,12 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     private static boolean isOverrideMethod(Method m, Method subMethod) {
         return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
+    }
+
+    private Object[] toDependencies(Context context, Executable executable) {
+        return stream(executable.getParameterTypes())
+                .map(t -> context.get(t).get())
+                .toArray(Object[]::new);
     }
 
     private static <Type> Constructor<Type> defaultConstructor(Class<Type> implementation) {
