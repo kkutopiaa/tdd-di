@@ -5,8 +5,13 @@ import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author qinxuekuan
@@ -15,11 +20,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @Nested
 class InjectionTest {
 
-    ContextConfig config;
+    private ContextConfig config;
+
+    private Dependency dependency = mock(Dependency.class);
+    private Context context = mock(Context.class);
+
 
     @BeforeEach
     public void setup() {
         config = new ContextConfig();
+        config.bind(Dependency.class, dependency);
+        Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
     }
 
     @Nested
@@ -35,9 +46,7 @@ class InjectionTest {
 
         @Test
         public void should_bind_type_to_a_class_with_inject_constructor() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
+
 
             Component instance = getComponent(Component.class, ComponentWithInjectConstructor.class);
 
@@ -82,8 +91,7 @@ class InjectionTest {
     }
 
     private <T, R extends T> T getComponent(Class<T> type, Class<R> implementation) {
-        config.bind(type, implementation);
-        return config.getContext().get(type).get();
+        return new ConstructorInjectionProvider<>(implementation).get(context);
     }
 
     @Nested
@@ -105,9 +113,7 @@ class InjectionTest {
         // happy path。
         @Test
         public void should_inject_dependency_via_field() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
+
 
 
             FieldInjection.ComponentWithFieldInjection component = getComponent(FieldInjection.ComponentWithFieldInjection.class, FieldInjection.ComponentWithFieldInjection.class);
@@ -117,9 +123,7 @@ class InjectionTest {
 
         @Test
         public void should_inject_dependency_via_superclass_inject_field() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
+
 
 
             FieldInjection.SubclassWithFieldInjection component = getComponent(FieldInjection.SubclassWithFieldInjection.class, FieldInjection.SubclassWithFieldInjection.class);
@@ -179,9 +183,7 @@ class InjectionTest {
 
         @Test
         public void should_inject_dependency_via_inject_method() {
-            Dependency dependency = new Dependency() {
-            };
-            config.bind(Dependency.class, dependency);
+
 
             MethodInjection.InjectMethodWithDependency component = getComponent(MethodInjection.InjectMethodWithDependency.class, MethodInjection.InjectMethodWithDependency.class);
 
