@@ -42,15 +42,19 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         Class<?> current = component;
         while (current != Object.class) {
             injectMethods.addAll(
-                    injectable(current.getDeclaredMethods())
-                            .filter(m -> isOverrideByInjectMethod(injectMethods, m))
-                            .filter(m -> isOverrideByNoInjectMethod(component, m))
-                            .toList()
+                    getC(component, injectMethods, current)
             );
             current = current.getSuperclass();
         }
         Collections.reverse(injectMethods);
         return injectMethods;
+    }
+
+    private static <T> List<Method> getC(Class<T> component, List<Method> injectMethods, Class<?> current) {
+        return injectable(current.getDeclaredMethods())
+                .filter(m -> isOverrideByInjectMethod(injectMethods, m))
+                .filter(m -> isOverrideByNoInjectMethod(component, m))
+                .toList();
     }
 
 
@@ -59,11 +63,15 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         Class<?> current = component;
         while (current != Object.class) {
             injectFields.addAll(
-                    injectable(current.getDeclaredFields()).toList()
+                    getC(injectFields,current)
             );
             current = current.getSuperclass();
         }
         return injectFields;
+    }
+
+    private static List<Field> getC(List<Field> fields, Class<?> current) {
+        return injectable(current.getDeclaredFields()).toList();
     }
 
 
