@@ -17,12 +17,12 @@ import static java.util.Arrays.stream;
  * @author qinxuekuan
  * @date 2022/6/17
  */
-class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
+class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private final Constructor<T> injectConstructor;
     private final List<Field> injectFields;
     private final List<Method> injectMethods;
 
-    public ConstructorInjectionProvider(Class<T> component) {
+    public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) {
             throw new IllegalComponentException();
         }
@@ -39,20 +39,18 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
-        BiFunction<List<Method>, Class<?>, List<Method>> function =
+        List<Method> injectMethods = traverse(component,
                 (methods, current) -> injectable(current.getDeclaredMethods())
-                                        .filter(m -> isOverrideByInjectMethod(methods, m))
-                                        .filter(m -> isOverrideByNoInjectMethod(component, m))
-                                        .toList();
-        List<Method> injectMethods = traverse(component, function);
+                        .filter(m -> isOverrideByInjectMethod(methods, m))
+                        .filter(m -> isOverrideByNoInjectMethod(component, m))
+                        .toList()
+        );
         Collections.reverse(injectMethods);
         return injectMethods;
     }
 
     static private <T> List<Field> getInjectFields(Class<T> component) {
-        BiFunction<List<Field>, Class<?>, List<Field>> function =
-                (fields, current) -> injectable(current.getDeclaredFields()).toList();
-        return traverse(component, function);
+        return traverse(component, (fields, current) -> injectable(current.getDeclaredFields()).toList());
     }
 
     static private <Type> Constructor<Type> getInjectConstructor(Class<Type> implementation) {
@@ -91,8 +89,8 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
     }
 
 
-    private static <T extends AnnotatedElement> Stream<T> injectable(T[] declaredFields) {
-        return stream(declaredFields).filter(f -> f.isAnnotationPresent(Inject.class));
+    private static <T extends AnnotatedElement> Stream<T> injectable(T[] members) {
+        return stream(members).filter(m -> m.isAnnotationPresent(Inject.class));
     }
 
     private static boolean isOverrideByInjectMethod(List<Method> injectMethods, Method m) {
@@ -127,16 +125,16 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         }
     }
 
-    private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> function) {
-        List<T> injectFields = new ArrayList<>();
+    private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> finder) {
+        List<T> members = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            injectFields.addAll(
-                    function.apply(injectFields, current)
+            members.addAll(
+                    finder.apply(members, current)
             );
             current = current.getSuperclass();
         }
-        return injectFields;
+        return members;
     }
 
 }
