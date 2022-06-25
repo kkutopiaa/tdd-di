@@ -52,15 +52,6 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
         return injectMethods;
     }
 
-    private static <T> boolean hasMethodInSubclassWithOverrideAndNoInject(Class<T> component, Method m) {
-        return Arrays.stream(component.getDeclaredMethods())
-                .filter(methodInSub -> !methodInSub.isAnnotationPresent(Inject.class))
-                .noneMatch(methodInSub -> isOverrideMethod(m, methodInSub));
-    }
-
-    private static boolean isOverrideMethod(Method m, Method subMethod) {
-        return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
-    }
 
     static private <T> List<Field> getInjectFields(Class<T> component) {
         List<Field> injectFields = new ArrayList<>();
@@ -83,20 +74,15 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
             throw new IllegalComponentException();
         }
 
-        return (Constructor<Type>) injectConstructors.stream().findFirst().orElseGet(() -> {
-            try {
-                return implementation.getDeclaredConstructor();
-            } catch (NoSuchMethodException e) {
-                throw new IllegalComponentException();
-            }
-        });
+        return (Constructor<Type>) injectConstructors.stream().findFirst()
+                .orElseGet(() -> defaultConstructor(implementation));
     }
 
     @Override
     public T get(Context context) {
         try {
-            Object[] dependencies = Arrays.stream(injectConstructor.getParameters())
-                    .map(p -> context.get(p.getType()).get())
+            Object[] dependencies = Arrays.stream(injectConstructor.getParameterTypes())
+                    .map(t -> context.get(t).get())
                     .toArray(Object[]::new);
             T instance = injectConstructor.newInstance(dependencies);
             for (Field field : injectFields) {
@@ -117,9 +103,29 @@ class ConstructorInjectionProvider<T> implements ContextConfig.ComponentProvider
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Stream.concat(Stream.concat(Arrays.stream(injectConstructor.getParameters()).map(Parameter::getType),
+        return Stream.concat(Stream.concat(Arrays.stream(injectConstructor.getParameterTypes()),
                                 injectFields.stream().map(Field::getType)),
                         injectMethods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes())))
                 .toList();
     }
+
+
+    private static <T> boolean hasMethodInSubclassWithOverrideAndNoInject(Class<T> component, Method m) {
+        return Arrays.stream(component.getDeclaredMethods())
+                .filter(methodInSub -> !methodInSub.isAnnotationPresent(Inject.class))
+                .noneMatch(methodInSub -> isOverrideMethod(m, methodInSub));
+    }
+
+    private static boolean isOverrideMethod(Method m, Method subMethod) {
+        return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
+    }
+
+    private static <Type> Constructor<Type> defaultConstructor(Class<Type> implementation) {
+        try {
+            return implementation.getDeclaredConstructor();
+        } catch (NoSuchMethodException e) {
+            throw new IllegalComponentException();
+        }
+    }
+
 }
