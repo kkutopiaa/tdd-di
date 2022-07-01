@@ -3,10 +3,7 @@ package kuan.tdd.di;
 import jakarta.inject.Inject;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Named;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -42,7 +39,9 @@ public class ContainerTest {
 
             config.bind(Component.class, instance);
 
-            assertSame(instance, config.getContext().get(Component.class).get());
+            Optional<Component> component = config.getContext().get(Component.class);
+            assertTrue(component.isPresent());
+            assertSame(instance, component.get());
         }
 
 
@@ -77,7 +76,7 @@ public class ContainerTest {
 
         static class ConstructorInjection implements Component {
 
-            private Dependency dependency;
+            private final Dependency dependency;
 
             @Inject
             public ConstructorInjection(Dependency dependency) {
@@ -185,11 +184,11 @@ public class ContainerTest {
         public static Stream<Arguments> should_throw_exception_if_cyclic_dependencies_found() {
             List<Arguments> arguments = new ArrayList<>();
 
-            for (Named component : List.of(Named.of("inject Constructor", CyclicComponentInjectConstructor.class),
+            for (Named<?> component : List.of(Named.of("inject Constructor", CyclicComponentInjectConstructor.class),
                     Named.of("inject Field", CyclicComponentInjectField.class),
                     Named.of("inject Method", CyclicComponentInjectMethod.class)
             )) {
-                for (Named dependency : List.of(Named.of("Inject Constructor", CyclicDependencyInjectConstructor.class),
+                for (Named<?> dependency : List.of(Named.of("Inject Constructor", CyclicDependencyInjectConstructor.class),
                         Named.of("Inject Field", CyclicDependencyInjectField.class),
                         Named.of("Inject Method", CyclicDependencyInjectMethod.class)
                 )) {
@@ -271,9 +270,9 @@ public class ContainerTest {
                             Named.of("Inject Method", IndirectCyclicAnotherDependencyInjectMethod.class)
                     );
             List<Arguments> arguments = new ArrayList<>();
-            for (Named component : cyclicComponents) {
-                for (Named dependency : cyclicDependencies) {
-                    for (Named anotherDependency : cyclicAnotherDependencies) {
+            for (Named<?> component : cyclicComponents) {
+                for (Named<?> dependency : cyclicDependencies) {
+                    for (Named<?> anotherDependency : cyclicAnotherDependencies) {
                         arguments.add(Arguments.of(component, dependency, anotherDependency));
                     }
                 }
@@ -392,34 +391,6 @@ class DependencyWithInjectConstructor implements Dependency {
 
     public String getDependency() {
         return dependency;
-    }
-}
-
-class DependencyDependedOnComponent implements Dependency {
-    private Component component;
-
-    @Inject
-    public DependencyDependedOnComponent(Component component) {
-        this.component = component;
-    }
-}
-
-class DependencyDependedOnAnotherDependency implements Dependency {
-    private AnotherDependency anotherDependency;
-
-    @Inject
-    public DependencyDependedOnAnotherDependency(AnotherDependency anotherDependency) {
-        this.anotherDependency = anotherDependency;
-    }
-}
-
-class AnotherDependencyDependedOnComponent implements AnotherDependency {
-
-    private Component component;
-
-    @Inject
-    public AnotherDependencyDependedOnComponent(Component component) {
-        this.component = component;
     }
 }
 
