@@ -1,8 +1,10 @@
 package kuan.tdd.di;
 
+import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
 /**
@@ -31,6 +33,14 @@ public class ContextConfig {
                 return Optional.ofNullable(providers.get(type))
                         .map(provider -> (Type) provider.get(this));
             }
+
+            @Override
+            public Optional get(ParameterizedType type) {
+                Class<?> componentType = (Class<?>) type.getActualTypeArguments()[0];
+                return Optional.ofNullable(providers.get(componentType))
+                        .map(componentProvider -> (Provider<Object>) () -> componentProvider.get(this));
+            }
+
         };
     }
 

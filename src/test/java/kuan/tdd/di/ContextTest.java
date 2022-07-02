@@ -128,9 +128,8 @@ class ContextTest {
             ParameterizedType type = (ParameterizedType) new TypeLiteral<Provider<Component>>() {
             }.getType();
 
-            assertEquals(Provider.class, type.getRawType());
-            assertEquals(Component.class, type.getActualTypeArguments()[0]);
-
+            Provider<Component> provider = (Provider<Component>) (context.get(type).get());
+            assertSame(instance, provider.get());
 
         }
 

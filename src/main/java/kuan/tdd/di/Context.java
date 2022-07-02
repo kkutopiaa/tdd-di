@@ -1,5 +1,6 @@
 package kuan.tdd.di;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,6 @@ public interface Context {
      * @return 一个组件，可以 null。 用 Optional 装载
      */
     <Type> Optional<Type> get(Class<Type> type);
+
+    Optional get(ParameterizedType type);
 }
