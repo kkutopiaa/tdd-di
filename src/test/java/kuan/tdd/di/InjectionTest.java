@@ -1,13 +1,14 @@
 package kuan.tdd.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,12 +23,16 @@ import static org.mockito.Mockito.when;
 @Nested
 class InjectionTest {
 
+    private final Provider<Dependency> dependencyProvider = mock(Provider.class);
     private final Dependency dependency = mock(Dependency.class);
     private final Context context = mock(Context.class);
 
     @BeforeEach
-    public void setup() {
-        Mockito.when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+    public void setup() throws NoSuchFieldException {
+        ParameterizedType providerType =
+                (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
+        when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        when(context.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -76,6 +81,21 @@ class InjectionTest {
                 InjectionProvider<ComponentWithInjectConstructor> provider =
                         new InjectionProvider<>(ComponentWithInjectConstructor.class);
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+            static class ProviderInjectConstructor{
+                private Provider<Dependency> dependency;
+
+                @Inject
+                public ProviderInjectConstructor(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectConstructor instance = new InjectionProvider<>(ProviderInjectConstructor.class).get(context);
+                assertSame(dependencyProvider, instance.dependency);
             }
         }
 
