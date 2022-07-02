@@ -302,6 +302,22 @@ class InjectionTest {
 
                 assertEquals(0, component.superCalled);
             }
+
+
+            static class ProviderInjectMethod{
+                private Provider<Dependency> dependency;
+
+                @Inject
+                void install(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_method() {
+                ProviderInjectMethod instance = new InjectionProvider<>(ProviderInjectMethod.class).get(context);
+                assertSame(dependencyProvider, instance.dependency);
+            }
         }
 
         @Nested
