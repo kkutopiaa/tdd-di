@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -125,17 +124,28 @@ class ContextTest {
             config.bind(Component.class, instance);
 
             Context context = config.getContext();
-            ParameterizedType type = (ParameterizedType) new TypeLiteral<Provider<Component>>() {
+            ParameterizedType type = new TypeLiteral<Provider<Component>>() {
             }.getType();
 
             Provider<Component> provider = (Provider<Component>) (context.get(type).get());
             assertSame(instance, provider.get());
+        }
 
+        @Test
+        public void should_not_retrieve_bind_type_as_unsupported_container() {
+            Component instance = new Component() {
+            };
+            config.bind(Component.class, instance);
+            Context context = config.getContext();
+            ParameterizedType type = new TypeLiteral<List<Component>>() {
+            }.getType();
+            assertFalse(context.get(type).isPresent());
+            
         }
 
         static abstract class TypeLiteral<T>{
-            public Type getType() {
-                return ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+            public ParameterizedType getType() {
+                return (ParameterizedType)((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
             }
         }
     }
