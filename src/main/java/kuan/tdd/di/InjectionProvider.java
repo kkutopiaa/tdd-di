@@ -90,8 +90,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     @Override
     public List<Type> getDependencyTypes() {
-        return Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
-                injectFields.stream().map(Field::getGenericType)).toList();
+        return Stream.concat(Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
+                                injectFields.stream().map(Field::getGenericType)),
+                        injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType)))
+                .toList();
     }
 
     private static <T extends AnnotatedElement> Stream<T> injectable(T[] members) {
