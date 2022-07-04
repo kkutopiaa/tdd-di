@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,12 +28,14 @@ class InjectionTest {
     private final Dependency dependency = mock(Dependency.class);
     private final Context context = mock(Context.class);
 
+    private ParameterizedType dependencyProviderType;
+
     @BeforeEach
     public void setup() throws NoSuchFieldException {
-        ParameterizedType providerType =
+        dependencyProviderType =
                 (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
         when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
-        when(context.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
+        when(context.get(eq(dependencyProviderType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -96,6 +99,12 @@ class InjectionTest {
             public void should_inject_provider_via_inject_constructor() {
                 ProviderInjectConstructor instance = new InjectionProvider<>(ProviderInjectConstructor.class).get(context);
                 assertSame(dependencyProvider, instance.dependency);
+            }
+
+            @Test
+            public void should_include_provider_type_from_inject_constructor() {
+                InjectionProvider<ProviderInjectConstructor> provider = new InjectionProvider<>(ProviderInjectConstructor.class);
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
             }
         }
 

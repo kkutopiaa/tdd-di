@@ -5,6 +5,7 @@ import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -70,6 +71,11 @@ public class ContextConfig {
         default List<Class<?>> getDependencies(){
             return List.of();
         }
+
+        default List<Type> getDependencyTypes(){
+            return List.of();
+        }
+
     }
 
 
