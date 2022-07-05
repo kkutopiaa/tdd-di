@@ -67,7 +67,7 @@ class InjectionTest {
             @Test
             @Disabled
             public void should_bind_type_to_a_class_with_transitive_dependencies() {
-                when(context.get(eq(Dependency.class))).thenReturn(
+                when(context.getType(eq(Dependency.class))).thenReturn(
                         Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
                 );
                 ComponentWithInjectConstructor instance =

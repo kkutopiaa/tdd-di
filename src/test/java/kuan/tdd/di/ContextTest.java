@@ -43,7 +43,7 @@ class ContextTest {
 
             config.bind(Component.class, instance);
 
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().getType(Component.class);
             assertTrue(component.isPresent());
             assertSame(instance, component.get());
         }
@@ -52,7 +52,7 @@ class ContextTest {
         // 之前的测试名： should_return_empty_if_component_not_defined
         @Test
         public void should_retrieve_empty_for_unbind_type() {
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().getType(Component.class);
             assertTrue(component.isEmpty());
         }
 
@@ -64,7 +64,7 @@ class ContextTest {
             config.bind(Dependency.class, dependency);
             config.bind(Component.class, componentType);
 
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().getType(Component.class);
 
             assertTrue(component.isPresent());
             assertSame(dependency, component.get().dependency());
@@ -389,7 +389,7 @@ class ContextTest {
             config.bind(Dependency.class, CyclicDependencyProviderConstructor.class);
 
             Context context = config.getContext();
-            assertTrue(context.get(Component.class).isPresent());
+            assertTrue(context.getType(Component.class).isPresent());
         }
 
 
