@@ -34,8 +34,8 @@ class InjectionTest {
     public void setup() throws NoSuchFieldException {
         dependencyProviderType =
                 (ParameterizedType) InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
-        when(context.getType(eq(Dependency.class))).thenReturn(Optional.of(dependency));
-        when(context.getType(eq(dependencyProviderType))).thenReturn(Optional.of(dependencyProvider));
+        when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        when(context.get(eq(dependencyProviderType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -67,7 +67,7 @@ class InjectionTest {
             @Test
             @Disabled
             public void should_bind_type_to_a_class_with_transitive_dependencies() {
-                when(context.getType(eq(Dependency.class))).thenReturn(
+                when(context.get(eq(Dependency.class))).thenReturn(
                         Optional.of(new DependencyWithInjectConstructor("indirect dependency"))
                 );
                 ComponentWithInjectConstructor instance =

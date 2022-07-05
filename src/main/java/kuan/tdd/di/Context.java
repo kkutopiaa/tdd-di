@@ -9,8 +9,8 @@ import java.util.Optional;
  */
 public interface Context {
     /**
-     * @param type   从容器中需要获取组件的类型
+     * @param type 从容器中需要获取组件的类型
      * @return 一个组件，可以 null。 用 Optional 装载
      */
-    Optional getType(Type type);
+    Optional get(Type type);
 }

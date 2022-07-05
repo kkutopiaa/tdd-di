@@ -44,7 +44,7 @@ public class ContextConfig {
             }
 
             @Override
-            public Optional getType(Type type) {
+            public Optional get(Type type) {
                 if (type instanceof ParameterizedType) {
                     return get((ParameterizedType) type);
                 }
