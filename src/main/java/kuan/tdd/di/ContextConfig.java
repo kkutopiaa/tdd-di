@@ -29,47 +29,56 @@ public class ContextConfig {
         providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         return new Context() {
-            private <Type> Optional<Type> get(Class<Type> type) {
+            private <Type> Optional<Type> getComponent(Class<Type> type) {
                 return Optional.ofNullable(providers.get(type))
                         .map(provider -> (Type) provider.get(this));
             }
 
-            private Optional get(ParameterizedType type) {
+            private Optional getContainer(ParameterizedType type) {
                 if (type.getRawType() != Provider.class) {
                     return Optional.empty();
                 }
-                Class<?> componentType = (Class<?>) type.getActualTypeArguments()[0];
-                return Optional.ofNullable(providers.get(componentType))
+                return Optional.ofNullable(providers.get(getComponentType(type)))
                         .map(componentProvider -> (Provider<Object>) () -> componentProvider.get(this));
             }
 
             @Override
             public Optional get(Type type) {
-                if (type instanceof ParameterizedType) {
-                    return get((ParameterizedType) type);
+                if (isContainerType(type)) {
+                    return getContainer((ParameterizedType) type);
                 }
-                return get((Class<?>) type);
+                return getComponent((Class<?>) type);
             }
         };
     }
 
+    private Class<?> getComponentType(Type type) {
+        return (Class<?>) ((ParameterizedType)type).getActualTypeArguments()[0];
+    }
+
+    private boolean isContainerType(Type type) {
+        return type instanceof ParameterizedType;
+    }
+
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
         for (Type dependency : providers.get(component).getDependencies()) {
-            if (dependency instanceof Class<?>) {
-                checkDependency(component, visiting, (Class<?>) dependency);
-            }
-            if (dependency instanceof ParameterizedType) {
-                Class<?> type = (Class<?>) ((ParameterizedType) dependency).getActualTypeArguments()[0];
-                if (!providers.containsKey(type)) {
-                    throw new DependencyNotFoundException(component, type);
-                }
+            if (isContainerType(dependency)) {
+                checkContainerTypeDependency(component, dependency);
+            } else {
+                checkComponentDependency(component, visiting, (Class<?>) dependency);
             }
 
         }
 
     }
 
-    private void checkDependency(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
+    private void checkContainerTypeDependency(Class<?> component, Type dependency) {
+        if (!providers.containsKey(getComponentType(dependency))) {
+            throw new DependencyNotFoundException(component, getComponentType(dependency));
+        }
+    }
+
+    private void checkComponentDependency(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
         if (!providers.containsKey(dependency)) {
             throw new DependencyNotFoundException(component, dependency);
         }
