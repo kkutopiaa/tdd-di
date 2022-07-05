@@ -15,11 +15,11 @@ import java.util.*;
 public class ContextConfig {
     private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
 
-    public <Type> void bind(Class<Type> type, Type instance) {
-        providers.put(type, (ComponentProvider<Type>) context -> instance);
+    public <T> void bind(Class<T> type, T instance) {
+        providers.put(type, (ComponentProvider<T>) context -> instance);
     }
 
-    public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
+    public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
         providers.put(type, new InjectionProvider<>(implementation));
     }
 
@@ -29,9 +29,9 @@ public class ContextConfig {
         providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         return new Context() {
-            private <Type> Optional<Type> getComponent(Class<Type> type) {
+            private <T> Optional<T> getComponent(Class<T> type) {
                 return Optional.ofNullable(providers.get(type))
-                        .map(provider -> (Type) provider.get(this));
+                        .map(provider -> (T) provider.get(this));
             }
 
             private Optional getContainer(ParameterizedType type) {
