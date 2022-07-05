@@ -35,8 +35,7 @@ public class ContextConfig {
                         .map(provider -> (Type) provider.get(this));
             }
 
-            @Override
-            public Optional get(ParameterizedType type) {
+            private Optional get(ParameterizedType type) {
                 if (type.getRawType() != Provider.class) {
                     return Optional.empty();
                 }
@@ -45,6 +44,13 @@ public class ContextConfig {
                         .map(componentProvider -> (Provider<Object>) () -> componentProvider.get(this));
             }
 
+            @Override
+            public Optional getType(Type type) {
+                if (type instanceof ParameterizedType) {
+                    return get((ParameterizedType) type);
+                }
+                return get((Class<?>) type);
+            }
         };
     }
 

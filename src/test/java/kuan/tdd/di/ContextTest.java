@@ -127,7 +127,7 @@ class ContextTest {
             ParameterizedType type = new TypeLiteral<Provider<Component>>() {
             }.getType();
 
-            Provider<Component> provider = (Provider<Component>) (context.get(type).get());
+            Provider<Component> provider = (Provider<Component>) (context.getType(type).get());
             assertSame(instance, provider.get());
         }
 
@@ -139,7 +139,7 @@ class ContextTest {
             Context context = config.getContext();
             ParameterizedType type = new TypeLiteral<List<Component>>() {
             }.getType();
-            assertFalse(context.get(type).isPresent());
+            assertFalse(context.getType(type).isPresent());
             
         }
 
