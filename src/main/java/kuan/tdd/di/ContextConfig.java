@@ -49,7 +49,7 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Type dependency : providers.get(component).getDependencyTypes()) {
+        for (Type dependency : providers.get(component).getDependencies()) {
             if (dependency instanceof Class<?>) {
                 checkDependency(component, visiting, (Class<?>) dependency);
             }
@@ -81,11 +81,7 @@ public class ContextConfig {
         // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
         T get(Context context);
 
-        default List<Class<?>> getDependencies(){
-            return List.of();
-        }
-
-        default List<Type> getDependencyTypes(){
+        default List<Type> getDependencies(){
             return List.of();
         }
 

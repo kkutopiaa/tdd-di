@@ -83,7 +83,7 @@ class InjectionTest {
             public void should_include_dependency_from_inject_constructor() {
                 InjectionProvider<ComponentWithInjectConstructor> provider =
                         new InjectionProvider<>(ComponentWithInjectConstructor.class);
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray(Type[]::new));
             }
 
             static class ProviderInjectConstructor{
@@ -104,7 +104,7 @@ class InjectionTest {
             @Test
             public void should_include_provider_type_from_inject_constructor() {
                 InjectionProvider<ProviderInjectConstructor> provider = new InjectionProvider<>(ProviderInjectConstructor.class);
-                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencies().toArray(Type[]::new));
             }
         }
 
@@ -189,7 +189,7 @@ class InjectionTest {
                 InjectionProvider<ComponentWithFieldInjection> provider =
                         new InjectionProvider<>(ComponentWithFieldInjection.class);
 
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray(Type[]::new));
             }
 
 
@@ -207,7 +207,7 @@ class InjectionTest {
             @Test
             public void should_include_provider_type_from_inject_field() {
                 InjectionProvider<ProviderInjectField> provider = new InjectionProvider<>(ProviderInjectField.class);
-                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencies().toArray(Type[]::new));
             }
         }
 
@@ -270,7 +270,7 @@ class InjectionTest {
                 InjectionProvider<InjectMethodWithDependency> provider =
                         new InjectionProvider<>(InjectMethodWithDependency.class);
 
-                assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray(Type[]::new));
             }
 
             static class SuperClassWithInjectMethod {
@@ -349,7 +349,7 @@ class InjectionTest {
             @Test
             public void should_include_provider_type_from_inject_method() {
                 InjectionProvider<ProviderInjectMethod> provider = new InjectionProvider<>(ProviderInjectMethod.class);
-                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(Type[]::new));
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencies().toArray(Type[]::new));
             }
         }
 
