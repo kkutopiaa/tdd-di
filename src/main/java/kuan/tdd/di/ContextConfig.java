@@ -4,7 +4,6 @@ import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -31,8 +30,7 @@ public class ContextConfig {
         return new Context() {
 
             @Override
-            public Optional get(Type type) {
-                Ref ref = Ref.of(type);
+            public Optional<?> get(Ref ref) {
                 if (ref.isContainer()) {
                     if (ref.getContainer() != Provider.class) {
                         return Optional.empty();
@@ -48,7 +46,7 @@ public class ContextConfig {
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
         for (Type dependency : providers.get(component).getDependencies()) {
-            Ref ref = Ref.of(dependency);
+            Context.Ref ref = Context.Ref.of(dependency);
             if (!providers.containsKey(ref.getComponent())) {
                 throw new DependencyNotFoundException(component, ref.getComponent());
             }
@@ -77,39 +75,6 @@ public class ContextConfig {
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
 
-    }
-
-    static class Ref {
-        private Type container;
-        private Class<?> component;
-
-        Ref(ParameterizedType container) {
-            this.container = container.getRawType();
-            this.component = (Class<?>) container.getActualTypeArguments()[0];
-        }
-
-        Ref(Class<?> component) {
-            this.component = component;
-        }
-
-        static public Ref of(Type type) {
-            if (type instanceof ParameterizedType) {
-                return new Ref((ParameterizedType) type);
-            }
-            return new Ref((Class<?>) type);
-        }
-
-        public Type getContainer() {
-            return container;
-        }
-
-        public Class<?> getComponent() {
-            return component;
-        }
-
-        public boolean isContainer() {
-            return this.container != null;
-        }
     }
 
 
