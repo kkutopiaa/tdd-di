@@ -99,6 +99,8 @@ public class ContextConfig {
             return List.of();
         }
 
+        // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
+
     }
 
 
