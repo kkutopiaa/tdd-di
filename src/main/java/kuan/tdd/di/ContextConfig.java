@@ -29,30 +29,19 @@ public class ContextConfig {
         providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         return new Context() {
-            private Optional getComponent(Class type) {
-                Ref ref = Ref.of(type);
-                Class componentType = ref.getComponent();
-                return Optional.ofNullable(providers.get(componentType))
-                        .map(provider -> provider.get(this));
-            }
-
-            private Optional getContainer(ParameterizedType type) {
-                Ref ref = Ref.of(type);
-                Type containerType = ref.getContainer();
-                if (containerType != Provider.class) {
-                    return Optional.empty();
-                }
-                Class<?> componentType = ref.getComponent();
-                return Optional.ofNullable(providers.get(componentType))
-                        .map(componentProvider -> (Provider<Object>) () -> componentProvider.get(this));
-            }
 
             @Override
             public Optional get(Type type) {
-                if (isContainerType(type)) {
-                    return getContainer((ParameterizedType) type);
+                Ref ref = Ref.of(type);
+                if (ref.isContainer()) {
+                    if (ref.getContainer() != Provider.class) {
+                        return Optional.empty();
+                    }
+                    return Optional.ofNullable(providers.get(ref.getComponent()))
+                            .map(provider -> (Provider<Object>) () -> provider.get(this));
                 }
-                return getComponent((Class<?>) type);
+                return Optional.ofNullable(providers.get(ref.getComponent()))
+                        .map(provider -> provider.get(this));
             }
         };
     }
@@ -134,6 +123,10 @@ public class ContextConfig {
 
         public Class<?> getComponent() {
             return component;
+        }
+
+        public boolean isContainer() {
+            return this.container != null;
         }
     }
 
