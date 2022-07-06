@@ -29,16 +29,21 @@ public class ContextConfig {
         providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         return new Context() {
-            private <T> Optional<T> getComponent(Class<T> type) {
-                return Optional.ofNullable(providers.get(type))
-                        .map(provider -> (T) provider.get(this));
+            private Optional getComponent(Class type) {
+                Ref ref = Ref.of(type);
+                Class componentType = ref.getComponent();
+                return Optional.ofNullable(providers.get(componentType))
+                        .map(provider -> provider.get(this));
             }
 
             private Optional getContainer(ParameterizedType type) {
-                if (type.getRawType() != Provider.class) {
+                Ref ref = Ref.of(type);
+                Type containerType = ref.getContainer();
+                if (containerType != Provider.class) {
                     return Optional.empty();
                 }
-                return Optional.ofNullable(providers.get(getComponentType(type)))
+                Class<?> componentType = ref.getComponent();
+                return Optional.ofNullable(providers.get(componentType))
                         .map(componentProvider -> (Provider<Object>) () -> componentProvider.get(this));
             }
 
@@ -53,7 +58,7 @@ public class ContextConfig {
     }
 
     private Class<?> getComponentType(Type type) {
-        return (Class<?>) ((ParameterizedType)type).getActualTypeArguments()[0];
+        return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
     }
 
     private boolean isContainerType(Type type) {
@@ -95,12 +100,41 @@ public class ContextConfig {
         // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
         T get(Context context);
 
-        default List<Type> getDependencies(){
+        default List<Type> getDependencies() {
             return List.of();
         }
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
 
+    }
+
+    static class Ref {
+        Type container;
+        Class<?> component;
+
+        Ref(ParameterizedType container) {
+            this.container = container.getRawType();
+            this.component = (Class<?>) container.getActualTypeArguments()[0];
+        }
+
+        Ref(Class<?> component) {
+            this.component = component;
+        }
+
+        static public Ref of(Type type) {
+            if (type instanceof ParameterizedType) {
+                return new Ref((ParameterizedType) type);
+            }
+            return new Ref((Class<?>) type);
+        }
+
+        public Type getContainer() {
+            return container;
+        }
+
+        public Class<?> getComponent() {
+            return component;
+        }
     }
 
 
