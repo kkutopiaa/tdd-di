@@ -2,6 +2,7 @@ package kuan.tdd.di;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -9,13 +10,6 @@ import java.util.Optional;
  * @date 2022/6/15
  */
 public interface Context {
-    /**
-     * @param type 从容器中需要获取组件的类型
-     * @return 一个组件，可以 null。 用 Optional 装载
-     */
-    default Optional get(Type type) {
-        return get(Ref.of(type));
-    }
 
     // 期望得到这样的一个方法： Optional get(Ref type)，  Ref 是对 Class 和 ParameterizedType 的封装
     Optional get(Ref ref);
@@ -50,6 +44,19 @@ public interface Context {
 
         public boolean isContainer() {
             return this.container != null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Ref ref = (Ref) o;
+            return Objects.equals(container, ref.container) && component.equals(ref.component);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(container, component);
         }
     }
 

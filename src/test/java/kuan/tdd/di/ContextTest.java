@@ -43,7 +43,7 @@ class ContextTest {
 
             config.bind(Component.class, instance);
 
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
             assertTrue(component.isPresent());
             assertSame(instance, component.get());
         }
@@ -52,7 +52,7 @@ class ContextTest {
         // 之前的测试名： should_return_empty_if_component_not_defined
         @Test
         public void should_retrieve_empty_for_unbind_type() {
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
             assertTrue(component.isEmpty());
         }
 
@@ -64,7 +64,7 @@ class ContextTest {
             config.bind(Dependency.class, dependency);
             config.bind(Component.class, componentType);
 
-            Optional<Component> component = config.getContext().get(Component.class);
+            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
 
             assertTrue(component.isPresent());
             assertSame(dependency, component.get().dependency());
@@ -127,7 +127,7 @@ class ContextTest {
             ParameterizedType type = new TypeLiteral<Provider<Component>>() {
             }.getType();
 
-            Provider<Component> provider = (Provider<Component>) (context.get(type).get());
+            Provider<Component> provider = (Provider<Component>) (context.get(Context.Ref.of(type)).get());
             assertSame(instance, provider.get());
         }
 
@@ -139,7 +139,7 @@ class ContextTest {
             Context context = config.getContext();
             ParameterizedType type = new TypeLiteral<List<Component>>() {
             }.getType();
-            assertFalse(context.get(type).isPresent());
+            assertFalse(context.get(Context.Ref.of(type)).isPresent());
             
         }
 
@@ -389,7 +389,7 @@ class ContextTest {
             config.bind(Dependency.class, CyclicDependencyProviderConstructor.class);
 
             Context context = config.getContext();
-            assertTrue(context.get(Component.class).isPresent());
+            assertTrue(context.get(Context.Ref.of(Component.class)).isPresent());
         }
 
 
