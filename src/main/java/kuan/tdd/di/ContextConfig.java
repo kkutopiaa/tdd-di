@@ -55,11 +55,13 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Type dependency : providers.get(component).getDependencies()) {
+        Ref ref = Ref.of(component);
+        Class<?> componentType = ref.getComponent();
+        for (Type dependency : providers.get(componentType).getDependencies()) {
             if (isContainerType(dependency)) {
-                checkContainerTypeDependency(component, dependency);
+                checkContainerTypeDependency(componentType, dependency);
             } else {
-                checkComponentDependency(component, visiting, (Class<?>) dependency);
+                checkComponentDependency(componentType, visiting, (Class<?>) dependency);
             }
 
         }
@@ -67,20 +69,26 @@ public class ContextConfig {
     }
 
     private void checkContainerTypeDependency(Class<?> component, Type dependency) {
-        if (!providers.containsKey(getComponentType(dependency))) {
-            throw new DependencyNotFoundException(component, getComponentType(dependency));
+        Ref ref = Ref.of(dependency);
+        Class<?> componentType = ref.getComponent();
+
+        if (!providers.containsKey(componentType)) {
+            throw new DependencyNotFoundException(component, componentType);
         }
     }
 
     private void checkComponentDependency(Class<?> component, Stack<Class<?>> visiting, Class<?> dependency) {
-        if (!providers.containsKey(dependency)) {
-            throw new DependencyNotFoundException(component, dependency);
+        Ref ref = Ref.of(dependency);
+        Class<?> componentType = ref.getComponent();
+
+        if (!providers.containsKey(componentType)) {
+            throw new DependencyNotFoundException(component, componentType);
         }
-        if (visiting.contains(dependency)) {
+        if (visiting.contains(componentType)) {
             throw new CyclicDependenciesFoundException(visiting);
         }
-        visiting.push(dependency);
-        checkDependencies(dependency, visiting);
+        visiting.push(componentType);
+        checkDependencies(componentType, visiting);
         visiting.pop();
     }
 
@@ -98,8 +106,8 @@ public class ContextConfig {
     }
 
     static class Ref {
-        Type container;
-        Class<?> component;
+        private Type container;
+        private Class<?> component;
 
         Ref(ParameterizedType container) {
             this.container = container.getRawType();
