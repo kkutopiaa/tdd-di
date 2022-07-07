@@ -77,11 +77,13 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         }
     }
 
+
     @Override
-    public List<Type> getDependencies() {
+    public List<Context.Ref> getDependencies() {
         return Stream.concat(Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
                                 injectFields.stream().map(Field::getGenericType)),
                         injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType)))
+                .map(Context.Ref::of)
                 .toList();
     }
 

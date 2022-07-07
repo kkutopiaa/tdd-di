@@ -4,7 +4,6 @@ import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 
-import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -45,7 +44,7 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Context.Ref ref : providers.get(component).getDependencyRefs()) {
+        for (Context.Ref ref : providers.get(component).getDependencies()) {
             if (!providers.containsKey(ref.getComponent())) {
                 throw new DependencyNotFoundException(component, ref.getComponent());
             }
@@ -68,17 +67,11 @@ public class ContextConfig {
         // 用这个接口提供 Context。 代表在传入的 Context 上下文中，获取 T 对象。
         T get(Context context);
 
-        default List<Type> getDependencies() {
-            return List.of();
-        }
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
-        default List<Context.Ref> getDependencyRefs() {
-            return getDependencies().stream().map(Context.Ref::of).toList();
+        default List<Context.Ref> getDependencies() {
+            return List.of();
         }
-
-
-
     }
 
 
