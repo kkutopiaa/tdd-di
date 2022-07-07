@@ -45,8 +45,7 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Class<?> component, Stack<Class<?>> visiting) {
-        for (Type dependency : providers.get(component).getDependencies()) {
-            Context.Ref ref = Context.Ref.of(dependency);
+        for (Context.Ref ref : providers.get(component).getDependencyRefs()) {
             if (!providers.containsKey(ref.getComponent())) {
                 throw new DependencyNotFoundException(component, ref.getComponent());
             }
@@ -74,6 +73,11 @@ public class ContextConfig {
         }
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
+        default List<Context.Ref> getDependencyRefs() {
+            return getDependencies().stream().map(Context.Ref::of).toList();
+        }
+
+
 
     }
 

@@ -83,7 +83,7 @@ class InjectionTest {
             public void should_include_dependency_from_inject_constructor() {
                 InjectionProvider<ComponentWithInjectConstructor> provider =
                         new InjectionProvider<>(ComponentWithInjectConstructor.class);
-                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray(Type[]::new));
+                assertArrayEquals(new Context.Ref[]{Context.Ref.of(Dependency.class)}, provider.getDependencyRefs().toArray(Context.Ref[]::new));
             }
 
             static class ProviderInjectConstructor{
