@@ -12,9 +12,9 @@ import java.util.Optional;
 public interface Context {
 
     // 期望得到这样的一个方法： Optional get(Ref type)，  Ref 是对 Class 和 ParameterizedType 的封装
-    Optional get(Ref ref);
+    <ComponentType> Optional<ComponentType> get(Ref<ComponentType> ref);
 
-    class Ref {
+    class Ref<ComponentType> {
         private Type container;
         private Class<?> component;
 
@@ -23,15 +23,19 @@ public interface Context {
             this.component = (Class<?>) container.getActualTypeArguments()[0];
         }
 
-        Ref(Class<?> component) {
+        Ref(Class<ComponentType> component) {
             this.component = component;
         }
 
-        static public Ref of(Type type) {
+        public static Ref of(Type type) {
             if (type instanceof ParameterizedType) {
                 return new Ref((ParameterizedType) type);
             }
             return new Ref((Class<?>) type);
+        }
+
+        public static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component) {
+            return new Ref(component);
         }
 
         public Type getContainer() {
