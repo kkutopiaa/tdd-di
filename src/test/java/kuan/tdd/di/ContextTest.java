@@ -500,6 +500,11 @@ record NamedLiteral(String value) implements jakarta.inject.Named {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return "value".hashCode() * 127 ^ value.hashCode();
+    }
 }
 
 @java.lang.annotation.Documented
