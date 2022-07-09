@@ -32,6 +32,7 @@ public class ContextConfig {
     }
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation qualifier) {
+        components.put(new Component(type, qualifier), new InjectionProvider<>(implementation));
     }
 
     public Context getContext() {
