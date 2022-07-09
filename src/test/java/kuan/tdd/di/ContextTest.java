@@ -439,9 +439,13 @@ class ContextTest {
                 Dependency dependency = new Dependency() {
                 };
                 config.bind(Dependency.class, dependency);
-                config.bind(InjectConstructor.class, InjectConstructor.class);
+                config.bind(InjectConstructor.class, InjectConstructor.class, new NamedLiteral("whatever"));
 
-                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+
+                assertEquals(new Component(InjectConstructor.class, new NamedLiteral("whatever")), exception.getComponentComponent());
+                assertEquals(new Component(Dependency.class, new SkywalkerLiteral()), exception.getDependencyComponent());
+
             }
 
             static class InjectConstructor {
