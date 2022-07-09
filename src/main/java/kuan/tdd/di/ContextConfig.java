@@ -29,16 +29,16 @@ public class ContextConfig {
         return new Context() {
 
             @Override
-            public Optional<?> get(Ref ref) {
+            public <ComponentType> Optional<ComponentType> get(Ref<ComponentType> ref) {
                 if (ref.isContainer()) {
                     if (ref.getContainer() != Provider.class) {
                         return Optional.empty();
                     }
-                    return Optional.ofNullable(providers.get(ref.getComponent()))
+                    return (Optional<ComponentType>) Optional.ofNullable(providers.get(ref.getComponent()))
                             .map(provider -> (Provider<Object>) () -> provider.get(this));
                 }
                 return Optional.ofNullable(providers.get(ref.getComponent()))
-                        .map(provider -> provider.get(this));
+                        .map(provider -> (ComponentType) provider.get(this));
             }
         };
     }
