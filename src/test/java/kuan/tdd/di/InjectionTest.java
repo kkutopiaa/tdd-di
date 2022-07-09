@@ -106,7 +106,6 @@ class InjectionTest {
                 assertArrayEquals(new ComponentRef[]{ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
-            // todo inject with qualifier
         }
 
 
@@ -144,10 +143,15 @@ class InjectionTest {
                         () -> new InjectionProvider<>(TestComponent.class));
             }
 
-            // todo throw illegal component if illegal qualifier given to injection point
         }
 
 
+        @Nested
+        class WithQualifier {
+            // todo inject with qualifier
+            // todo include qualifier with dependency
+            // todo throw illegal component if illegal qualifier given to injection point
+        }
     }
 
     @Nested
@@ -212,8 +216,6 @@ class InjectionTest {
                 InjectionProvider<ProviderInjectField> provider = new InjectionProvider<>(ProviderInjectField.class);
                 assertArrayEquals(new ComponentRef[]{ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
-
-            // todo inject with qualifier
         }
 
         @Nested
@@ -229,9 +231,14 @@ class InjectionTest {
                         () -> new InjectionProvider<>(FinalInjectField.class));
             }
 
-            // todo throw illegal component if illegal qualifier given to injection point
         }
 
+        @Nested
+        class WithQualifier {
+            // todo inject with qualifier
+            // todo include qualifier with dependency
+            // todo throw illegal component if illegal qualifier given to injection point
+        }
     }
 
     @Nested
@@ -359,7 +366,6 @@ class InjectionTest {
                 assertArrayEquals(new ComponentRef[]{ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
-            // todo inject with qualifier
         }
 
         @Nested
@@ -377,6 +383,12 @@ class InjectionTest {
                         () -> new InjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
 
+        }
+
+        @Nested
+        class WithQualifier {
+            // todo inject with qualifier
+            // todo include qualifier with dependency
             // todo throw illegal component if illegal qualifier given to injection point
         }
     }

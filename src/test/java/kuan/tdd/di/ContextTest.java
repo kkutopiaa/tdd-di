@@ -5,10 +5,7 @@ import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Named;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -438,6 +435,7 @@ class ContextTest {
         class WithQualifier{
             // todo dependency missing if qualifier not match
             @Test
+            @Disabled
             public void should_throw_exception_if_dependency_with_qualifier_not_found() {
                 Dependency dependency = new Dependency() {
                 };
