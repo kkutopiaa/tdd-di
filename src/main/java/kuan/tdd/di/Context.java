@@ -19,8 +19,11 @@ public interface Context {
         private Type container;
         private Class<?> component;
 
-        Ref(Type type) {
+        private Annotation qualifier;
+
+        Ref(Type type, Annotation qualifier) {
             init(type);
+            this.qualifier = qualifier;
         }
 
         Ref(Class<ComponentType> component) {
@@ -28,7 +31,7 @@ public interface Context {
         }
 
         public static Ref of(Type type) {
-            return new Ref(type);
+            return new Ref(type, null);
         }
 
         public static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component) {
@@ -36,7 +39,7 @@ public interface Context {
         }
 
         public static <ComponentType> Ref<ComponentType> of(Class<ComponentType> component, Annotation qualifier) {
-            return new Ref(component);
+            return new Ref(component, qualifier);
         }
 
         protected Ref() {
@@ -59,6 +62,10 @@ public interface Context {
 
         public Class<?> getComponent() {
             return component;
+        }
+
+        public Annotation getQualifier() {
+            return qualifier;
         }
 
         public boolean isContainer() {
