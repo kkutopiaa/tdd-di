@@ -70,7 +70,7 @@ public class ContextConfig {
         };
     }
 
-    public void checkDependencies(Component component, Stack<Class<?>> visiting) {
+    public void checkDependencies(Component component, Stack<Component> visiting) {
         for (ComponentRef dependency : components.get(component).getDependencies()) {
             if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier()))) {
                 throw new DependencyNotFoundException(component, dependency.component());
@@ -79,10 +79,10 @@ public class ContextConfig {
                 if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier()))) {
                     throw new DependencyNotFoundException(component, dependency.component());
                 }
-                if (visiting.contains(dependency.getComponent())) {
+                if (visiting.contains(dependency.component())) {
                     throw new CyclicDependenciesFoundException(visiting);
                 }
-                visiting.push(dependency.getComponent());
+                visiting.push(dependency.component());
                 checkDependencies(new Component(dependency.getComponent(), dependency.getQualifier()), visiting);
                 visiting.pop();
             }

@@ -455,7 +455,6 @@ class ContextTest {
             }
 
 
-            // todo check cyclic dependency with qualifier
             @Test
             public void should_not_throw_cyclic_exception_if_component_with_same_type_taged_with_different_qualifier() {
                 Dependency instance = new Dependency() {
