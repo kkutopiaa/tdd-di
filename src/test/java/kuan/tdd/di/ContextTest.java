@@ -142,7 +142,6 @@ class ContextTest {
 
         @Nested
         class WithQualifier{
-            // todo binding component with qualifier
             @Test
             public void should_bind_instance_with_qualifier() {
                 Component instance = new Component() {
@@ -169,8 +168,22 @@ class ContextTest {
 
             }
 
-
             // todo binding component with multi qualifier
+            @Test
+            public void should_bind_instance_with_multi_qualifier() {
+                Component instance = new Component() {
+                };
+                config.bind(Component.class, instance, new NamedLiteral("ChoseOne"), new NamedLiteral("Skywalker"));
+
+                Context context = config.getContext();
+                Component choseOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChoseOne"))).get();
+                Component skywalker = context.get(Context.Ref.of(Component.class, new NamedLiteral("Skywalker"))).get();
+
+                assertSame(instance, choseOne);
+                assertSame(instance, skywalker);
+            }
+
+
             // todo throw illegal component if illegal qualifier
         }
 
