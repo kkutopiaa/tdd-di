@@ -454,9 +454,9 @@ class ContextTest {
 }
 
 
-record NamedLiteral(String name) implements Annotation {
+record NamedLiteral(String value) implements jakarta.inject.Named {
     @Override
     public Class<? extends Annotation> annotationType() {
-        return Annotation.class;
+        return jakarta.inject.Named.class;
     }
 }
