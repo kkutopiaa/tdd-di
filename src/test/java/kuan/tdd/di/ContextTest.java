@@ -155,6 +155,19 @@ class ContextTest {
                 assertSame(instance, choseOne);
             }
 
+            @Test
+            public void should_bind_component_with_qualifier() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(ComponentWithInjectConstructor.class, ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"));
+
+                Context context = config.getContext();
+                ComponentWithInjectConstructor choseOne = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
+
+                assertSame(dependency, choseOne.getDependency());
+
+            }
 
 
             // todo binding component with multi qualifier

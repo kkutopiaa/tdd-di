@@ -31,6 +31,9 @@ public class ContextConfig {
         providers.put(type, new InjectionProvider<>(implementation));
     }
 
+    public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation qualifier) {
+    }
+
     public Context getContext() {
         // 检查是否存在依赖
         // 检查是否发生了循环依赖
