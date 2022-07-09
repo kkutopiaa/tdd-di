@@ -8,37 +8,21 @@ import kuan.tdd.di.Component;
  */
 public class DependencyNotFoundException extends RuntimeException {
 
-    private  Class<?> component;
-    private  Class<?> dependency;
+    private final Component component;
 
-    private Component componentComponent;
+    private final Component dependency;
 
-    private Component dependencyComponent;
-
-    public DependencyNotFoundException(Class<?> component, Class<?> dependency) {
+    public DependencyNotFoundException(Component component, Component dependency) {
         this.component = component;
         this.dependency = dependency;
     }
 
-    public DependencyNotFoundException(Component componentComponent, Component dependencyComponent) {
-        this.componentComponent = componentComponent;
-        this.dependencyComponent = dependencyComponent;
+    public Component getComponent() {
+        return this.component;
     }
 
-    public Class<?> getDependency() {
-        return dependency;
-    }
-
-    public Class<?> getComponent() {
-        return component;
-    }
-
-    public Component getComponentComponent() {
-        return this.componentComponent;
-    }
-
-    public Component getDependencyComponent() {
-        return this.dependencyComponent;
+    public Component getDependency() {
+        return this.dependency;
     }
 
 }
