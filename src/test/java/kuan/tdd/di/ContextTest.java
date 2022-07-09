@@ -139,6 +139,13 @@ class ContextTest {
             
         }
 
+        @Nested
+        class WithQualifier{
+            // todo binding component with qualifier
+            // todo binding component with multi qualifier
+            // todo throw illegal component if illegal qualifier
+        }
+
     }
 
     @Nested
@@ -383,6 +390,12 @@ class ContextTest {
             assertTrue(context.get(Context.Ref.of(Component.class)).isPresent());
         }
 
+
+        @Nested
+        class WithQualifier{
+            // todo dependency missing if qualifier not match
+            // todo check cyclic dependency with qualifier
+        }
 
     }
 }

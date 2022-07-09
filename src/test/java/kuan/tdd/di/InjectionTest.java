@@ -105,6 +105,8 @@ class InjectionTest {
                 InjectionProvider<ProviderInjectConstructor> provider = new InjectionProvider<>(ProviderInjectConstructor.class);
                 assertArrayEquals(new Context.Ref[]{Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
             }
+
+            // todo inject with qualifier
         }
 
 
@@ -141,6 +143,8 @@ class InjectionTest {
                 assertThrows(IllegalComponentException.class,
                         () -> new InjectionProvider<>(Component.class));
             }
+
+            // todo throw illegal component if illegal qualifier given to injection point
         }
 
 
@@ -208,6 +212,8 @@ class InjectionTest {
                 InjectionProvider<ProviderInjectField> provider = new InjectionProvider<>(ProviderInjectField.class);
                 assertArrayEquals(new Context.Ref[]{Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
             }
+
+            // todo inject with qualifier
         }
 
         @Nested
@@ -222,6 +228,8 @@ class InjectionTest {
                 assertThrows(IllegalComponentException.class,
                         () -> new InjectionProvider<>(FinalInjectField.class));
             }
+
+            // todo throw illegal component if illegal qualifier given to injection point
         }
 
     }
@@ -350,6 +358,8 @@ class InjectionTest {
                 InjectionProvider<ProviderInjectMethod> provider = new InjectionProvider<>(ProviderInjectMethod.class);
                 assertArrayEquals(new Context.Ref[]{Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
             }
+
+            // todo inject with qualifier
         }
 
         @Nested
@@ -366,6 +376,8 @@ class InjectionTest {
                 assertThrows(IllegalComponentException.class,
                         () -> new InjectionProvider<>(InjectMethodWithTypeParameter.class));
             }
+
+            // todo throw illegal component if illegal qualifier given to injection point
         }
     }
 }
