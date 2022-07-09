@@ -174,7 +174,6 @@ class ContextTest {
                 assertSame(dependency, skywalker.getDependency());
             }
 
-            // todo throw illegal component if illegal qualifier
             @Test
             public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
                 TestComponent instance = new TestComponent() {
@@ -438,6 +437,23 @@ class ContextTest {
         @Nested
         class WithQualifier{
             // todo dependency missing if qualifier not match
+            @Test
+            public void should_throw_exception_if_dependency_with_qualifier_not_found() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(InjectConstructor.class, InjectConstructor.class);
+
+                assertThrows(DependencyNotFoundException.class, () -> config.getContext());
+            }
+
+            static class InjectConstructor {
+                @Inject
+                public InjectConstructor(@Skywalker Dependency dependency) {
+                }
+            }
+
+
             // todo check cyclic dependency with qualifier
         }
 
