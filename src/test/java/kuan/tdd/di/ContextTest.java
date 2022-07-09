@@ -165,7 +165,6 @@ class ContextTest {
                 ComponentWithInjectConstructor choseOne = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
 
                 assertSame(dependency, choseOne.getDependency());
-
             }
 
             // todo binding component with multi qualifier
@@ -183,6 +182,20 @@ class ContextTest {
                 assertSame(instance, skywalker);
             }
 
+            @Test
+            public void should_bind_component_with_multi_qualifier() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(ComponentWithInjectConstructor.class, ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"),new NamedLiteral("Skywalker"));
+
+                Context context = config.getContext();
+                ComponentWithInjectConstructor choseOne = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
+                ComponentWithInjectConstructor skywalker = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("Skywalker"))).get();
+
+                assertSame(dependency, choseOne.getDependency());
+                assertSame(dependency, skywalker.getDependency());
+            }
 
             // todo throw illegal component if illegal qualifier
         }
