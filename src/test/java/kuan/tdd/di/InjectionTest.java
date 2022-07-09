@@ -150,7 +150,6 @@ class InjectionTest {
         @Nested
         class WithQualifier {
             // todo inject with qualifier
-            // todo include qualifier with dependency
             @Test
             public void should_include_qualifier_with_dependency() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
