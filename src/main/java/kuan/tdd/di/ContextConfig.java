@@ -58,7 +58,7 @@ public class ContextConfig {
                 }
 
                 if (ref.isContainer()) {
-                    if (ref.getContainer() != Provider.class) {
+                    if (ref.container() != Provider.class) {
                         return Optional.empty();
                     }
                     return (Optional<ComponentType>) Optional.ofNullable(components.get(new Component(ref.getComponent(), ref.getQualifier())))
@@ -71,19 +71,19 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Component component, Stack<Class<?>> visiting) {
-        for (ComponentRef ref : components.get(component).getDependencies()) {
-            if (!components.containsKey(new Component(ref.getComponent(), ref.getQualifier()))) {
-                throw new DependencyNotFoundException(component.type(), ref.getComponent());
+        for (ComponentRef dependency : components.get(component).getDependencies()) {
+            if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier()))) {
+                throw new DependencyNotFoundException(component, dependency.component());
             }
-            if (!ref.isContainer()) {
-                if (!components.containsKey(new Component(ref.getComponent(), ref.getQualifier()))) {
-                    throw new DependencyNotFoundException(component.type(), ref.getComponent());
+            if (!dependency.isContainer()) {
+                if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier()))) {
+                    throw new DependencyNotFoundException(component, dependency.component());
                 }
-                if (visiting.contains(ref.getComponent())) {
+                if (visiting.contains(dependency.getComponent())) {
                     throw new CyclicDependenciesFoundException(visiting);
                 }
-                visiting.push(ref.getComponent());
-                checkDependencies(new Component(ref.getComponent(), ref.getQualifier()), visiting);
+                visiting.push(dependency.getComponent());
+                checkDependencies(new Component(dependency.getComponent(), dependency.getQualifier()), visiting);
                 visiting.pop();
             }
         }

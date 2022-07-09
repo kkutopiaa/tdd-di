@@ -199,8 +199,8 @@ class ContextTest {
 
             DependencyNotFoundException exception =
                     assertThrows(DependencyNotFoundException.class, () -> config.getContext());
-            assertEquals(Dependency.class, exception.getDependency());
-            assertEquals(TestComponent.class, exception.getComponent());
+            assertEquals(Dependency.class, exception.getDependencyComponent().type());
+            assertEquals(TestComponent.class, exception.getComponentComponent().type());
         }
 
         public static Stream<Arguments> should_throw_exception_if_dependency_not_found() {
@@ -257,8 +257,8 @@ class ContextTest {
 
             DependencyNotFoundException exception =
                     assertThrows(DependencyNotFoundException.class, () -> config.getContext());
-            assertEquals(String.class, exception.getDependency());
-            assertEquals(Dependency.class, exception.getComponent());
+            assertEquals(String.class, exception.getDependencyComponent().type());
+            assertEquals(Dependency.class, exception.getComponentComponent().type());
         }
 
 
@@ -487,6 +487,11 @@ record SkywalkerLiteral() implements Skywalker {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Skywalker.class;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Skywalker;
     }
 }
 

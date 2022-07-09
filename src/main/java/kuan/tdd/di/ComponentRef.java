@@ -53,12 +53,17 @@ class ComponentRef<ComponentType> {
         }
     }
 
-    public Type getContainer() {
+    public Type container() {
         return container;
     }
 
+
     public Class<?> getComponent() {
         return component.type();
+    }
+
+    public Component component() {
+        return component;
     }
 
     public Annotation getQualifier() {
