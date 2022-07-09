@@ -167,7 +167,6 @@ class ContextTest {
                 assertSame(dependency, choseOne.getDependency());
             }
 
-            // todo binding component with multi qualifier
             @Test
             public void should_bind_instance_with_multi_qualifier() {
                 Component instance = new Component() {
