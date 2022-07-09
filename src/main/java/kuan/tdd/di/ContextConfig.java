@@ -1,8 +1,10 @@
 package kuan.tdd.di;
 
 import jakarta.inject.Provider;
+import jakarta.inject.Qualifier;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
+import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -19,6 +21,9 @@ public class ContextConfig {
     }
 
     public <T> void bind(Class<T> type, T instance, Annotation... qualifiers) {
+        if (Arrays.stream(qualifiers).anyMatch(q -> !q.getClass().isAnnotationPresent(Qualifier.class))) {
+            throw new IllegalComponentException();
+        }
         for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), context -> instance);
         }
