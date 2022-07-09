@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -142,6 +143,20 @@ class ContextTest {
         @Nested
         class WithQualifier{
             // todo binding component with qualifier
+            @Test
+            public void should_bind_instance_with_qualifier() {
+                Component instance = new Component() {
+                };
+                config.bind(Component.class, instance, new NamedLiteral("ChoseOne"));
+
+                Context context = config.getContext();
+
+                Component choseOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChoseOne"))).get();
+                assertSame(instance, choseOne);
+            }
+
+
+
             // todo binding component with multi qualifier
             // todo throw illegal component if illegal qualifier
         }
@@ -397,5 +412,13 @@ class ContextTest {
             // todo check cyclic dependency with qualifier
         }
 
+    }
+}
+
+
+record NamedLiteral(String name) implements Annotation {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Annotation.class;
     }
 }

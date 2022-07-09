@@ -4,6 +4,7 @@ import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
@@ -15,6 +16,9 @@ public class ContextConfig {
 
     public <T> void bind(Class<T> type, T instance) {
         providers.put(type, (ComponentProvider<T>) context -> instance);
+    }
+
+    public <T> void bind(Class<T> type, T instance, Annotation qualifier) {
     }
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
