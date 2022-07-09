@@ -21,7 +21,7 @@ public class ContextConfig {
     }
 
     public <T> void bind(Class<T> type, T instance, Annotation... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(q -> !q.getClass().isAnnotationPresent(Qualifier.class))) {
+        if (Arrays.stream(qualifiers).anyMatch(q -> !q.annotationType().isAnnotationPresent(Qualifier.class))) {
             throw new IllegalComponentException();
         }
         for (Annotation qualifier : qualifiers) {
@@ -35,7 +35,7 @@ public class ContextConfig {
     }
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(q -> !q.getClass().isAnnotationPresent(Qualifier.class))) {
+        if (Arrays.stream(qualifiers).anyMatch(q -> !q.annotationType().isAnnotationPresent(Qualifier.class))) {
             throw new IllegalComponentException();
         }
         for (Annotation qualifier : qualifiers) {
