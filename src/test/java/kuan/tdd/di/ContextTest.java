@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
+import kuan.tdd.di.exception.IllegalComponentException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
@@ -174,6 +175,14 @@ class ContextTest {
             }
 
             // todo throw illegal component if illegal qualifier
+            @Test
+            public void should_throw_exception_if_illegal_qualifier_given_to_instance() {
+                TestComponent instance = new TestComponent() {
+                };
+                assertThrows(IllegalComponentException.class, () -> config.bind(TestComponent.class, instance, new TestLiteral()));
+            }
+
+
         }
 
     }
@@ -444,9 +453,16 @@ record NamedLiteral(String value) implements jakarta.inject.Named {
 @interface Skywalker {
 }
 
-record SkywalkerLiteral() implements Skywalker{
+record SkywalkerLiteral() implements Skywalker {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Skywalker.class;
+    }
+}
+
+record TestLiteral() implements Test {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Test.class;
     }
 }
