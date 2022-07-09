@@ -12,11 +12,9 @@ import java.util.*;
  * @date 2022/6/6
  */
 public class ContextConfig {
-    private final Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
     private final Map<Component, ComponentProvider<?>> components = new HashMap<>();
 
     public <T> void bind(Class<T> type, T instance) {
-//        providers.put(type, (ComponentProvider<T>) context -> instance);
         components.put(new Component(type, null), context -> instance);
     }
 
@@ -31,7 +29,6 @@ public class ContextConfig {
 
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
-//        providers.put(type, new InjectionProvider<>(implementation));
         components.put(new Component(type, null), new InjectionProvider<>(implementation));
     }
 
@@ -44,7 +41,6 @@ public class ContextConfig {
     public Context getContext() {
         // 检查是否存在依赖
         // 检查是否发生了循环依赖
-//        providers.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
         components.keySet().forEach(component -> checkDependencies(component, new Stack<>()));
 
         return new Context() {
@@ -60,7 +56,7 @@ public class ContextConfig {
                     if (ref.getContainer() != Provider.class) {
                         return Optional.empty();
                     }
-                    return (Optional<ComponentType>) Optional.ofNullable(getProvider(ref))
+                    return (Optional<ComponentType>) Optional.ofNullable(components.get(new Component(ref.getComponent(), ref.getQualifier())))
                             .map(provider -> (Provider<Object>) () -> provider.get(this));
                 }
                 return Optional.ofNullable(components.get(new Component(ref.getComponent(), ref.getQualifier())))
@@ -69,14 +65,7 @@ public class ContextConfig {
         };
     }
 
-    private <ComponentType> ComponentProvider<?> getProvider(Context.Ref<ComponentType> ref) {
-//        return providers.get(ref.getComponent());
-        return components.get(new Component(ref.getComponent(), ref.getQualifier()));
-    }
-
     public void checkDependencies(Component component, Stack<Class<?>> visiting) {
-
-//        for (Context.Ref ref : providers.get(component).getDependencies()) {
         for (Context.Ref ref : components.get(component).getDependencies()) {
             if (!components.containsKey(new Component(ref.getComponent(), ref.getQualifier()))) {
                 throw new DependencyNotFoundException(component.type, ref.getComponent());
