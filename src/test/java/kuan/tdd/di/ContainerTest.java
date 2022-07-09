@@ -32,7 +32,7 @@ public class ContainerTest {
 }
 
 
-interface Component {
+interface TestComponent {
     default Dependency dependency() {
         return null;
     }
@@ -47,10 +47,10 @@ interface AnotherDependency {
 }
 
 // inner class , static or non-static , default constructor , has some trouble...
-class ComponentWithDefaultConstructor implements Component {
+class ComponentWithDefaultConstructor implements TestComponent {
 }
 
-class ComponentWithInjectConstructor implements Component {
+class ComponentWithInjectConstructor implements TestComponent {
     Dependency dependency;
 
     @Inject
@@ -63,7 +63,7 @@ class ComponentWithInjectConstructor implements Component {
     }
 }
 
-class ComponentWithMultiInjectConstructors implements Component {
+class ComponentWithMultiInjectConstructors implements TestComponent {
     @Inject
     public ComponentWithMultiInjectConstructors(String name, Double value) {
     }
@@ -73,7 +73,7 @@ class ComponentWithMultiInjectConstructors implements Component {
     }
 }
 
-class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+class ComponentWithNoInjectConstructorNorDefaultConstructor implements TestComponent {
     public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
     }
 }

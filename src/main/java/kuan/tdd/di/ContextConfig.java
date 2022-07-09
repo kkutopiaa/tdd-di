@@ -24,9 +24,6 @@ public class ContextConfig {
         }
     }
 
-    record Component(Class<?> type, Annotation qualifier) {
-    }
-
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
         components.put(new Component(type, null), new InjectionProvider<>(implementation));
@@ -46,7 +43,7 @@ public class ContextConfig {
         return new Context() {
 
             @Override
-            public <ComponentType> Optional<ComponentType> get(Ref<ComponentType> ref) {
+            public <ComponentType> Optional<ComponentType> get(ComponentRef<ComponentType> ref) {
                 if (ref.getQualifier() != null) {
                     return Optional.ofNullable(components.get(new Component(ref.getComponent(), ref.getQualifier())))
                             .map(provider -> (ComponentType) provider.get(this));
@@ -66,13 +63,13 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Component component, Stack<Class<?>> visiting) {
-        for (Context.Ref ref : components.get(component).getDependencies()) {
+        for (ComponentRef ref : components.get(component).getDependencies()) {
             if (!components.containsKey(new Component(ref.getComponent(), ref.getQualifier()))) {
-                throw new DependencyNotFoundException(component.type, ref.getComponent());
+                throw new DependencyNotFoundException(component.type(), ref.getComponent());
             }
             if (!ref.isContainer()) {
                 if (!components.containsKey(new Component(ref.getComponent(), ref.getQualifier()))) {
-                    throw new DependencyNotFoundException(component.type, ref.getComponent());
+                    throw new DependencyNotFoundException(component.type(), ref.getComponent());
                 }
                 if (visiting.contains(ref.getComponent())) {
                     throw new CyclicDependenciesFoundException(visiting);
@@ -91,7 +88,7 @@ public class ContextConfig {
 
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
-        default List<Context.Ref> getDependencies() {
+        default List<ComponentRef> getDependencies() {
             return List.of();
         }
     }

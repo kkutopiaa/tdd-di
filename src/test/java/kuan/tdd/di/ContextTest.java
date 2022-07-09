@@ -38,12 +38,12 @@ class ContextTest {
 
         @Test
         public void should_bind_type_to_a_specific_instance() {
-            Component instance = new Component() {
+            TestComponent instance = new TestComponent() {
             };
 
-            config.bind(Component.class, instance);
+            config.bind(TestComponent.class, instance);
 
-            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
+            Optional<TestComponent> component = config.getContext().get(ComponentRef.of(TestComponent.class));
             assertTrue(component.isPresent());
             assertSame(instance, component.get());
         }
@@ -52,19 +52,19 @@ class ContextTest {
         // 之前的测试名： should_return_empty_if_component_not_defined
         @Test
         public void should_retrieve_empty_for_unbind_type() {
-            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
+            Optional<TestComponent> component = config.getContext().get(ComponentRef.of(TestComponent.class));
             assertTrue(component.isEmpty());
         }
 
         @ParameterizedTest(name = "supporting {0}")
         @MethodSource
-        public void should_bind_type_to_an_injectable_component(Class<? extends Component> componentType) {
+        public void should_bind_type_to_an_injectable_component(Class<? extends TestComponent> componentType) {
             Dependency dependency = new Dependency() {
             };
             config.bind(Dependency.class, dependency);
-            config.bind(Component.class, componentType);
+            config.bind(TestComponent.class, componentType);
 
-            Optional<Component> component = config.getContext().get(Context.Ref.of(Component.class));
+            Optional<TestComponent> component = config.getContext().get(ComponentRef.of(TestComponent.class));
 
             assertTrue(component.isPresent());
             assertSame(dependency, component.get().dependency());
@@ -78,7 +78,7 @@ class ContextTest {
             );
         }
 
-        static class ConstructorInjection implements Component {
+        static class ConstructorInjection implements TestComponent {
 
             private final Dependency dependency;
 
@@ -93,7 +93,7 @@ class ContextTest {
             }
         }
 
-        static class FieldInjection implements Component {
+        static class FieldInjection implements TestComponent {
             @Inject
             private Dependency dependency;
 
@@ -103,7 +103,7 @@ class ContextTest {
             }
         }
 
-        static class MethodInjection implements Component {
+        static class MethodInjection implements TestComponent {
             private Dependency dependency;
 
             @Inject
@@ -119,24 +119,24 @@ class ContextTest {
 
         @Test
         public void should_retrieve_bind_type_as_provider() {
-            Component instance = new Component() {
+            TestComponent instance = new TestComponent() {
             };
-            config.bind(Component.class, instance);
+            config.bind(TestComponent.class, instance);
 
             Context context = config.getContext();
 
-            Provider<Component> provider = context.get(new Context.Ref<Provider<Component>>() {
+            Provider<TestComponent> provider = context.get(new ComponentRef<Provider<TestComponent>>() {
             }).get();
             assertSame(instance, provider.get());
         }
 
         @Test
         public void should_not_retrieve_bind_type_as_unsupported_container() {
-            Component instance = new Component() {
+            TestComponent instance = new TestComponent() {
             };
-            config.bind(Component.class, instance);
+            config.bind(TestComponent.class, instance);
             Context context = config.getContext();
-            assertFalse(context.get(new Context.Ref<List<Component>>(){}).isPresent());
+            assertFalse(context.get(new ComponentRef<List<TestComponent>>(){}).isPresent());
             
         }
 
@@ -144,13 +144,13 @@ class ContextTest {
         class WithQualifier{
             @Test
             public void should_bind_instance_with_qualifier() {
-                Component instance = new Component() {
+                TestComponent instance = new TestComponent() {
                 };
-                config.bind(Component.class, instance, new NamedLiteral("ChoseOne"));
+                config.bind(TestComponent.class, instance, new NamedLiteral("ChoseOne"));
 
                 Context context = config.getContext();
 
-                Component choseOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChoseOne"))).get();
+                TestComponent choseOne = context.get(ComponentRef.of(TestComponent.class, new NamedLiteral("ChoseOne"))).get();
                 assertSame(instance, choseOne);
             }
 
@@ -162,20 +162,20 @@ class ContextTest {
                 config.bind(ComponentWithInjectConstructor.class, ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"));
 
                 Context context = config.getContext();
-                ComponentWithInjectConstructor choseOne = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
+                ComponentWithInjectConstructor choseOne = context.get(ComponentRef.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
 
                 assertSame(dependency, choseOne.getDependency());
             }
 
             @Test
             public void should_bind_instance_with_multi_qualifier() {
-                Component instance = new Component() {
+                TestComponent instance = new TestComponent() {
                 };
-                config.bind(Component.class, instance, new NamedLiteral("ChoseOne"), new NamedLiteral("Skywalker"));
+                config.bind(TestComponent.class, instance, new NamedLiteral("ChoseOne"), new NamedLiteral("Skywalker"));
 
                 Context context = config.getContext();
-                Component choseOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChoseOne"))).get();
-                Component skywalker = context.get(Context.Ref.of(Component.class, new NamedLiteral("Skywalker"))).get();
+                TestComponent choseOne = context.get(ComponentRef.of(TestComponent.class, new NamedLiteral("ChoseOne"))).get();
+                TestComponent skywalker = context.get(ComponentRef.of(TestComponent.class, new NamedLiteral("Skywalker"))).get();
 
                 assertSame(instance, choseOne);
                 assertSame(instance, skywalker);
@@ -189,8 +189,8 @@ class ContextTest {
                 config.bind(ComponentWithInjectConstructor.class, ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"),new NamedLiteral("Skywalker"));
 
                 Context context = config.getContext();
-                ComponentWithInjectConstructor choseOne = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
-                ComponentWithInjectConstructor skywalker = context.get(Context.Ref.of(ComponentWithInjectConstructor.class, new NamedLiteral("Skywalker"))).get();
+                ComponentWithInjectConstructor choseOne = context.get(ComponentRef.of(ComponentWithInjectConstructor.class, new NamedLiteral("ChoseOne"))).get();
+                ComponentWithInjectConstructor skywalker = context.get(ComponentRef.of(ComponentWithInjectConstructor.class, new NamedLiteral("Skywalker"))).get();
 
                 assertSame(dependency, choseOne.getDependency());
                 assertSame(dependency, skywalker.getDependency());
@@ -206,13 +206,13 @@ class ContextTest {
 
         @ParameterizedTest
         @MethodSource
-        public void should_throw_exception_if_dependency_not_found(Class<? extends Component> component) {
-            config.bind(Component.class, component);
+        public void should_throw_exception_if_dependency_not_found(Class<? extends TestComponent> component) {
+            config.bind(TestComponent.class, component);
 
             DependencyNotFoundException exception =
                     assertThrows(DependencyNotFoundException.class, () -> config.getContext());
             assertEquals(Dependency.class, exception.getDependency());
-            assertEquals(Component.class, exception.getComponent());
+            assertEquals(TestComponent.class, exception.getComponent());
         }
 
         public static Stream<Arguments> should_throw_exception_if_dependency_not_found() {
@@ -226,37 +226,37 @@ class ContextTest {
 
         }
 
-        static class MissingDependencyConstructor implements Component {
+        static class MissingDependencyConstructor implements TestComponent {
             @Inject
             public MissingDependencyConstructor(Dependency dependency) {
             }
         }
 
-        static class MissingDependencyField implements Component {
+        static class MissingDependencyField implements TestComponent {
             @Inject
             Dependency dependency;
         }
 
-        static class MissingDependencyMethod implements Component {
+        static class MissingDependencyMethod implements TestComponent {
             @Inject
             void install(Dependency dependency) {
             }
         }
 
-        static class MissingDependencyProviderConstructor implements Component {
+        static class MissingDependencyProviderConstructor implements TestComponent {
             @Inject
             public MissingDependencyProviderConstructor(Provider<Dependency> dependencyProvider) {
             }
         }
 
 
-        static class MissingDependencyProviderField implements Component {
+        static class MissingDependencyProviderField implements TestComponent {
             @Inject
             Provider<Dependency> dependencyProvider;
         }
 
 
-        static class MissingDependencyProviderMethod implements Component {
+        static class MissingDependencyProviderMethod implements TestComponent {
             @Inject
             void install(Provider<Dependency> dependencyProvider) {
             }
@@ -264,7 +264,7 @@ class ContextTest {
 
         @Test
         public void should_throw_exception_if_transitive_dependency_not_found() {
-            config.bind(Component.class, ComponentWithInjectConstructor.class);
+            config.bind(TestComponent.class, ComponentWithInjectConstructor.class);
             config.bind(Dependency.class, DependencyWithInjectConstructor.class);
 
             DependencyNotFoundException exception =
@@ -276,9 +276,9 @@ class ContextTest {
 
         @ParameterizedTest(name = "cyclic dependency between {0} and {1}")
         @MethodSource
-        public void should_throw_exception_if_cyclic_dependencies_found(Class<? extends Component> component,
+        public void should_throw_exception_if_cyclic_dependencies_found(Class<? extends TestComponent> component,
                                                                         Class<? extends Dependency> dependency) {
-            config.bind(Component.class, component);
+            config.bind(TestComponent.class, component);
             config.bind(Dependency.class, dependency);
 
             CyclicDependenciesFoundException exception =
@@ -286,7 +286,7 @@ class ContextTest {
 
             List<Class<?>> components = List.of(exception.getComponents());
             assertEquals(2, components.size());
-            assertTrue(components.contains(Component.class));
+            assertTrue(components.contains(TestComponent.class));
             assertTrue(components.contains(Dependency.class));
         }
 
@@ -308,18 +308,18 @@ class ContextTest {
             return arguments.stream();
         }
 
-        static class CyclicComponentInjectConstructor implements Component {
+        static class CyclicComponentInjectConstructor implements TestComponent {
             @Inject
             public CyclicComponentInjectConstructor(Dependency dependency) {
             }
         }
 
-        static class CyclicComponentInjectField implements Component {
+        static class CyclicComponentInjectField implements TestComponent {
             @Inject
             Dependency dependency;
         }
 
-        static class CyclicComponentInjectMethod implements Component {
+        static class CyclicComponentInjectMethod implements TestComponent {
             @Inject
             void install(Dependency dependency) {
             }
@@ -327,28 +327,28 @@ class ContextTest {
 
         static class CyclicDependencyInjectConstructor implements Dependency {
             @Inject
-            public CyclicDependencyInjectConstructor(Component component) {
+            public CyclicDependencyInjectConstructor(TestComponent component) {
             }
         }
 
-        static class CyclicDependencyInjectField implements Component {
+        static class CyclicDependencyInjectField implements TestComponent {
             @Inject
-            Component component;
+            TestComponent component;
         }
 
-        static class CyclicDependencyInjectMethod implements Component {
+        static class CyclicDependencyInjectMethod implements TestComponent {
             @Inject
-            void install(Component component) {
+            void install(TestComponent component) {
 
             }
         }
 
         @ParameterizedTest(name = "indirect cyclic dependency between {0}, {1} and {2}")
         @MethodSource
-        public void should_throw_exception_if_transitive_cyclic_dependencies_found(Class<? extends Component> component,
+        public void should_throw_exception_if_transitive_cyclic_dependencies_found(Class<? extends TestComponent> component,
                                                                                    Class<? extends Dependency> dependency,
                                                                                    Class<? extends AnotherDependency> antherDependency) {
-            config.bind(Component.class, component);
+            config.bind(TestComponent.class, component);
             config.bind(Dependency.class, dependency);
             config.bind(AnotherDependency.class, antherDependency);
 
@@ -357,13 +357,13 @@ class ContextTest {
 
             List<Class<?>> components = List.of(exception.getComponents());
             assertEquals(3, components.size());
-            assertTrue(components.contains(Component.class));
+            assertTrue(components.contains(TestComponent.class));
             assertTrue(components.contains(Dependency.class));
             assertTrue(components.contains(AnotherDependency.class));
         }
 
         public static Stream<Arguments> should_throw_exception_if_transitive_cyclic_dependencies_found() {
-            List<Named<? extends Class<? extends Component>>> cyclicComponents =
+            List<Named<? extends Class<? extends TestComponent>>> cyclicComponents =
                     List.of(Named.of("Inject Constructor", DependencyCheck.CyclicComponentInjectConstructor.class),
                             Named.of("Inject Field", DependencyCheck.CyclicComponentInjectField.class),
                             Named.of("Inject Method", DependencyCheck.CyclicComponentInjectMethod.class)
@@ -410,18 +410,18 @@ class ContextTest {
 
         static class IndirectCyclicAnotherDependencyInjectConstructor implements AnotherDependency {
             @Inject
-            public IndirectCyclicAnotherDependencyInjectConstructor(Component component) {
+            public IndirectCyclicAnotherDependencyInjectConstructor(TestComponent component) {
             }
         }
 
         static class IndirectCyclicAnotherDependencyInjectField implements AnotherDependency {
             @Inject
-            Component component;
+            TestComponent component;
         }
 
         static class IndirectCyclicAnotherDependencyInjectMethod implements AnotherDependency {
             @Inject
-            void install(Component component) {
+            void install(TestComponent component) {
 
             }
         }
@@ -429,18 +429,18 @@ class ContextTest {
 
         static class CyclicDependencyProviderConstructor implements Dependency {
             @Inject
-            public CyclicDependencyProviderConstructor(Provider<Component> component) {
+            public CyclicDependencyProviderConstructor(Provider<TestComponent> component) {
 
             }
         }
 
         @Test
         public void should_not_throw_exception_if_cyclic_dependency_via_provider() {
-            config.bind(Component.class, CyclicComponentInjectConstructor.class);
+            config.bind(TestComponent.class, CyclicComponentInjectConstructor.class);
             config.bind(Dependency.class, CyclicDependencyProviderConstructor.class);
 
             Context context = config.getContext();
-            assertTrue(context.get(Context.Ref.of(Component.class)).isPresent());
+            assertTrue(context.get(ComponentRef.of(TestComponent.class)).isPresent());
         }
 
 
