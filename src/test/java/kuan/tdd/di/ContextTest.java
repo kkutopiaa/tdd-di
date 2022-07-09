@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -463,6 +464,14 @@ record NamedLiteral(String value) implements jakarta.inject.Named {
     @Override
     public Class<? extends Annotation> annotationType() {
         return jakarta.inject.Named.class;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof jakarta.inject.Named named) {
+            return Objects.equals(value, named.value());
+        }
+        return false;
     }
 }
 
