@@ -167,7 +167,6 @@ class InjectionTest {
                 }
             }
 
-            // todo inject with qualifier
             @Test
             public void should_inject_dependency_with_qualifier_via_constructor() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
@@ -436,19 +435,38 @@ class InjectionTest {
 
         @Nested
         class WithQualifier {
-            // todo inject with qualifier
+
+            @BeforeEach
+            public void before() {
+                Mockito.reset(context);
+                when(context.get(ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))))
+                        .thenReturn(Optional.of(dependency));
+            }
+
+
+            static class InjectMethod {
+                Dependency dependency;
+
+                @Inject
+                void install(@Named("ChosenOne") Dependency dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_dependency_with_qualifier_via_method() {
+                InjectionProvider<InjectMethod> provider = new InjectionProvider<>(InjectMethod.class);
+                InjectMethod component = provider.get(context);
+                assertSame(dependency, component.dependency);
+            }
+
+
             @Test
             public void should_include_dependency_with_qualifier() {
                 InjectionProvider<InjectMethod> provider = new InjectionProvider<>(InjectMethod.class);
                 assertArrayEquals(
                         new ComponentRef<?>[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
                         provider.getDependencies().toArray());
-            }
-
-            static class InjectMethod {
-                @Inject
-                void install(@Named("ChosenOne") Dependency dependency) {
-                }
             }
 
 
