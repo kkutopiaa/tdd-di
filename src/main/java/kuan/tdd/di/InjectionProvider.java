@@ -17,7 +17,6 @@ import static java.util.Arrays.stream;
  * @date 2022/6/17
  */
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
-    private final Constructor<T> injectConstructor;
     private final List<Field> injectFields;
     private final List<Method> injectMethods;
 
@@ -35,7 +34,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         this.injectableConstructor = new Injectable<>(constructor, required);
 
 
-        injectConstructor = constructor;
         injectFields = getInjectFields(component);
         injectMethods = getInjectMethods(component);
 
@@ -78,7 +76,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public T get(Context context) {
         try {
-            T instance = injectConstructor.newInstance(toDependencies(context, injectConstructor));
+            T instance = injectableConstructor.element().newInstance(injectableConstructor.toDependency(context));
             for (Field field : injectFields) {
                 field.setAccessible(true);
                 field.set(instance, toDependency(context, field));
@@ -96,7 +94,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public List<ComponentRef> getDependencies() {
         return Stream.concat(Stream.concat(
-                                stream(injectConstructor.getParameters()).map(InjectionProvider::toComponentRef),
+                                stream(injectableConstructor.required()),
                                 injectFields.stream().map(InjectionProvider::toComponentRef)),
                         injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(InjectionProvider::toComponentRef)))
                 .toList();
@@ -104,7 +102,9 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required) {
 
-
+        Object[] toDependency(Context context) {
+            return stream(required).map(context::get).map(Optional::get).toArray();
+        }
 
     }
 
