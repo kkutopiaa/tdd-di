@@ -84,16 +84,22 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public List<ComponentRef> getDependencies() {
         return Stream.concat(Stream.concat(
                                 stream(injectConstructor.getParameters()).map(this::toComponentRef),
-                                injectFields.stream().map(Field::getGenericType).map(ComponentRef::of)),
+                                injectFields.stream().map(f -> toComponentRef(f))),
                         injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(this::toComponentRef)))
                 .toList();
     }
 
-    private ComponentRef toComponentRef(Parameter p) {
-        Annotation qualifier = stream(p.getAnnotations())
+    private ComponentRef toComponentRef(Field field) {
+        Annotation qualifer = stream(field.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
+                .findFirst().orElse(null);
+        return ComponentRef.of(field.getGenericType(), qualifer);
+    }
+
+    private ComponentRef toComponentRef(Parameter parameter) {
+        Annotation qualifier = stream(parameter.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
                 .findFirst().orElse(null);
-        return ComponentRef.of(p.getParameterizedType(), qualifier);
+        return ComponentRef.of(parameter.getParameterizedType(), qualifier);
     }
 
     private static <T extends AnnotatedElement> Stream<T> injectable(T[] members) {
