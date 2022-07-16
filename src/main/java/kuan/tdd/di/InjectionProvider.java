@@ -24,7 +24,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private final Injectable<Constructor<T>> injectConstructor;
 
-    private Injectable<Method> injectableMethods;
+    private List<Injectable<Method>> injectableMethods;
 
 
     public InjectionProvider(Class<T> component) {
@@ -35,6 +35,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         Constructor<T> constructor = getInjectConstructor(component);
 
         this.injectConstructor = getInjectable(constructor);
+        this.injectableMethods = getInjectMethods(component).stream().map(this::getInjectable).toList();
 
         injectFields = getInjectFields(component);
         injectMethods = getInjectMethods(component);
