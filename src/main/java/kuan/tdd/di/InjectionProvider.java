@@ -99,18 +99,13 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         return ComponentRef.of(field.getGenericType(), qualifier);
     }
 
-    private static Annotation getQualifier(Field field) {
-        return stream(field.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
-                .findFirst().orElse(null);
-    }
-
     private ComponentRef toComponentRef(Parameter parameter) {
         Annotation qualifier = getQualifier(parameter);
         return ComponentRef.of(parameter.getParameterizedType(), qualifier);
     }
 
-    private static Annotation getQualifier(Parameter parameter) {
-        List<Annotation> qualifiers = stream(parameter.getAnnotations())
+    private static Annotation getQualifier(AnnotatedElement element) {
+        List<Annotation> qualifiers = stream(element.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
                 .toList();
         if (qualifiers.size() > 1) {
