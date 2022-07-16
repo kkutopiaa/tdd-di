@@ -269,8 +269,27 @@ class InjectionTest {
 
         @Nested
         class WithQualifier {
-            // todo inject with qualifier
-            // todo include qualifier with dependency
+            @BeforeEach
+            public void before() {
+                Mockito.reset(context);
+                when(context.get(ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))))
+                        .thenReturn(Optional.of(dependency));
+            }
+
+            static class InjectField {
+                @Inject
+                @Named("ChosenOne")
+                Dependency dependency;
+            }
+
+
+            @Test
+            public void should_inject_dependency_with_qualifier_via_field() {
+                InjectionProvider<InjectField> provider = new InjectionProvider<>(InjectField.class);
+                InjectField component = provider.get(context);
+                assertSame(dependency, component.dependency);
+            }
+
             @Test
             public void should_include_dependency_with_qualifier() {
                 InjectionProvider<InjectField> provider = new InjectionProvider<>(InjectField.class);
@@ -279,11 +298,6 @@ class InjectionTest {
                         provider.getDependencies().toArray());
             }
 
-            static class InjectField {
-                @Inject
-                @Named("ChosenOne")
-                Dependency dependency;
-            }
 
             // todo throw illegal component if illegal qualifier given to injection point
         }
