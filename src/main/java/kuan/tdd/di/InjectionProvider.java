@@ -85,7 +85,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         return Stream.concat(Stream.concat(
                                 stream(injectConstructor.getParameters()).map(this::toComponentRef),
                                 injectFields.stream().map(Field::getGenericType).map(ComponentRef::of)),
-                        injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType)).map(ComponentRef::of))
+                        injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(this::toComponentRef)))
                 .toList();
     }
 

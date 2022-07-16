@@ -151,7 +151,7 @@ class InjectionTest {
         class WithQualifier {
             // todo inject with qualifier
             @Test
-            public void should_include_qualifier_with_dependency() {
+            public void should_include_dependency_with_qualifier() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
                 assertArrayEquals(
                         new ComponentRef<?>[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
@@ -403,6 +403,21 @@ class InjectionTest {
         class WithQualifier {
             // todo inject with qualifier
             // todo include qualifier with dependency
+            @Test
+            public void should_include_dependency_with_qualifier() {
+                InjectionProvider<InjectMethod> provider = new InjectionProvider<>(InjectMethod.class);
+                assertArrayEquals(
+                        new ComponentRef<?>[]{ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))},
+                        provider.getDependencies().toArray());
+            }
+
+            static class InjectMethod {
+                @Inject
+                void install(@Named("ChosenOne") Dependency dependency) {
+                }
+            }
+
+
             // todo throw illegal component if illegal qualifier given to injection point
         }
     }
