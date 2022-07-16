@@ -18,13 +18,11 @@ import static java.util.Arrays.stream;
  */
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
-    private List<ComponentRef<?>> dependencies;
-
     private final Injectable<Constructor<T>> injectConstructor;
 
     private final List<Injectable<Method>> injectableMethods;
 
-    private List<Injectable<Field>> injectableFields;
+    private final List<Injectable<Field>> injectableFields;
 
 
     public InjectionProvider(Class<T> component) {
@@ -45,7 +43,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         if (injectableMethods.stream().map(Injectable::element).anyMatch(m -> m.getTypeParameters().length != 0)) {
             throw new IllegalComponentException();
         }
-        this.dependencies = getDependencies();
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
@@ -135,20 +132,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private static boolean isOverrideMethod(Method m, Method subMethod) {
         return subMethod.getName().equals(m.getName()) && Arrays.equals(subMethod.getParameterTypes(), m.getParameterTypes());
-    }
-
-    private static Object toDependency(Context context, Field field) {
-        return toDependency(context, toComponentRef(field));
-    }
-
-    private static Object toDependency(Context context, ComponentRef ref) {
-        return context.get(ref).get();
-    }
-
-    private static Object[] toDependencies(Context context, Executable executable) {
-        return stream(executable.getParameters())
-                .map(p -> toDependency(context, toComponentRef(p)))
-                .toArray(Object[]::new);
     }
 
     private static ComponentRef toComponentRef(Field field) {
