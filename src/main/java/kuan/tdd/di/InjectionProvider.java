@@ -22,7 +22,10 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private List<ComponentRef> dependencies;
 
-    private Injectable<Constructor<T>> injectableConstructor;
+    private final Injectable<Constructor<T>> injectConstructor;
+
+    private Injectable<Method> injectableMethods;
+
 
     public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) {
@@ -30,9 +33,8 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         }
 
         Constructor<T> constructor = getInjectConstructor(component);
-        ComponentRef<?>[] required = stream(constructor.getParameters()).map(InjectionProvider::toComponentRef).toArray(ComponentRef<?>[]::new);
-        this.injectableConstructor = new Injectable<>(constructor, required);
 
+        this.injectConstructor = getInjectable(constructor);
 
         injectFields = getInjectFields(component);
         injectMethods = getInjectMethods(component);
@@ -43,9 +45,12 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         if (injectMethods.stream().anyMatch(m -> m.getTypeParameters().length != 0)) {
             throw new IllegalComponentException();
         }
-
         this.dependencies = getDependencies();
+    }
 
+    private <Element extends Executable> Injectable<Element> getInjectable(Element element) {
+        ComponentRef<?>[] required = stream(element.getParameters()).map(InjectionProvider::toComponentRef).toArray(ComponentRef<?>[]::new);
+        return new Injectable<>(element, required);
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
@@ -76,7 +81,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public T get(Context context) {
         try {
-            T instance = injectableConstructor.element().newInstance(injectableConstructor.toDependency(context));
+            T instance = injectConstructor.element().newInstance(injectConstructor.toDependency(context));
             for (Field field : injectFields) {
                 field.setAccessible(true);
                 field.set(instance, toDependency(context, field));
@@ -94,7 +99,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     @Override
     public List<ComponentRef> getDependencies() {
         return Stream.concat(Stream.concat(
-                                stream(injectableConstructor.required()),
+                                stream(injectConstructor.required()),
                                 injectFields.stream().map(InjectionProvider::toComponentRef)),
                         injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(InjectionProvider::toComponentRef)))
                 .toList();
