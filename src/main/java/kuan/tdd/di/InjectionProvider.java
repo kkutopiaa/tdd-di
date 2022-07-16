@@ -21,6 +21,8 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private final List<Field> injectFields;
     private final List<Method> injectMethods;
 
+    private List<ComponentRef> dependencies;
+
     public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) {
             throw new IllegalComponentException();
@@ -35,6 +37,9 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         if (injectMethods.stream().anyMatch(m -> m.getTypeParameters().length != 0)) {
             throw new IllegalComponentException();
         }
+
+        this.dependencies = getDependencies();
+
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
@@ -84,7 +89,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public List<ComponentRef> getDependencies() {
         return Stream.concat(Stream.concat(
                                 stream(injectConstructor.getParameters()).map(this::toComponentRef),
-                                injectFields.stream().map(f -> toComponentRef(f))),
+                                injectFields.stream().map(this::toComponentRef)),
                         injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(this::toComponentRef)))
                 .toList();
     }
@@ -105,9 +110,14 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static Annotation getQualifier(Parameter parameter) {
-        return stream(parameter.getAnnotations())
+        List<Annotation> qualifiers = stream(parameter.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
-                .findFirst().orElse(null);
+                .toList();
+        if (qualifiers.size() > 1) {
+            throw new IllegalComponentException();
+        }
+
+        return qualifiers.stream().findFirst().orElse(null);
     }
 
     private static <T extends AnnotatedElement> Stream<T> injectable(T[] members) {
