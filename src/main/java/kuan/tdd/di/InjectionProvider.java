@@ -17,13 +17,14 @@ import static java.util.Arrays.stream;
  * @date 2022/6/17
  */
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
-    private final List<Field> injectFields;
 
-    private List<ComponentRef> dependencies;
+    private List<ComponentRef<?>> dependencies;
 
     private final Injectable<Constructor<T>> injectConstructor;
 
     private final List<Injectable<Method>> injectableMethods;
+
+    private List<Injectable<Field>> injectableFields;
 
 
     public InjectionProvider(Class<T> component) {
@@ -33,23 +34,18 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
         Constructor<T> constructor = getInjectConstructor(component);
 
-        this.injectConstructor = getInjectable(constructor);
-        this.injectableMethods = getInjectMethods(component).stream().map(this::getInjectable).toList();
+        this.injectConstructor = Injectable.of(constructor);
+        this.injectableMethods = getInjectMethods(component).stream().map(Injectable::of).toList();
+        this.injectableFields = getInjectFields(component).stream().map(Injectable::of).toList();
 
-        injectFields = getInjectFields(component);
 
-        if (injectFields.stream().anyMatch(f -> Modifier.isFinal(f.getModifiers()))) {
+        if (injectableFields.stream().map(Injectable::element).anyMatch(f -> Modifier.isFinal(f.getModifiers()))) {
             throw new IllegalComponentException();
         }
         if (injectableMethods.stream().map(Injectable::element).anyMatch(m -> m.getTypeParameters().length != 0)) {
             throw new IllegalComponentException();
         }
         this.dependencies = getDependencies();
-    }
-
-    private <Element extends Executable> Injectable<Element> getInjectable(Element element) {
-        ComponentRef<?>[] required = stream(element.getParameters()).map(InjectionProvider::toComponentRef).toArray(ComponentRef<?>[]::new);
-        return new Injectable<>(element, required);
     }
 
     static private <T> List<Method> getInjectMethods(Class<T> component) {
@@ -81,9 +77,9 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     public T get(Context context) {
         try {
             T instance = injectConstructor.element().newInstance(injectConstructor.toDependency(context));
-            for (Field field : injectFields) {
-                field.setAccessible(true);
-                field.set(instance, toDependency(context, field));
+            for (Injectable<Field> field : injectableFields) {
+                field.element().setAccessible(true);
+                field.element().set(instance, field.toDependency(context)[0]);
             }
             for (Injectable<Method> method : injectableMethods) {
                 method.element().invoke(instance, method.toDependency(context));
@@ -96,15 +92,25 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
 
     @Override
-    public List<ComponentRef> getDependencies() {
+    public List<ComponentRef<?>> getDependencies() {
         return Stream.concat(Stream.concat(
                                 stream(injectConstructor.required()),
-                                injectFields.stream().map(InjectionProvider::toComponentRef)),
+                                injectableFields.stream().flatMap(f -> stream(f.required()))
+                        ),
                         injectableMethods.stream().flatMap(m -> stream(m.required())))
                 .toList();
     }
 
     static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required) {
+
+        static <Element extends Executable> Injectable<Element> of(Element element) {
+            ComponentRef<?>[] required = stream(element.getParameters()).map(InjectionProvider::toComponentRef).toArray(ComponentRef<?>[]::new);
+            return new Injectable<>(element, required);
+        }
+
+        static Injectable<Field> of(Field field) {
+            return new Injectable<>(field, new ComponentRef<?>[]{toComponentRef(field)});
+        }
 
         Object[] toDependency(Context context) {
             return stream(required).map(context::get).map(Optional::get).toArray();

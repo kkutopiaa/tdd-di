@@ -71,7 +71,7 @@ public class ContextConfig {
     }
 
     public void checkDependencies(Component component, Stack<Component> visiting) {
-        for (ComponentRef dependency : components.get(component).getDependencies()) {
+        for (ComponentRef<?> dependency : components.get(component).getDependencies()) {
             if (!components.containsKey(new Component(dependency.getComponent(), dependency.getQualifier()))) {
                 throw new DependencyNotFoundException(component, dependency.component());
             }
@@ -96,7 +96,7 @@ public class ContextConfig {
 
 
         // 期望得到这样的一个方法： List<Ref> getDependencies()，  Ref 是对 Class 和 ParameterizedType 的封装
-        default List<ComponentRef> getDependencies() {
+        default List<ComponentRef<?>> getDependencies() {
             return List.of();
         }
     }
