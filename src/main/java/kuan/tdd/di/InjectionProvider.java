@@ -23,11 +23,19 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private List<ComponentRef> dependencies;
 
+    private Injectable<Constructor<T>> injectableConstructor;
+
     public InjectionProvider(Class<T> component) {
         if (Modifier.isAbstract(component.getModifiers())) {
             throw new IllegalComponentException();
         }
-        injectConstructor = getInjectConstructor(component);
+
+        Constructor<T> constructor = getInjectConstructor(component);
+        ComponentRef<?>[] required = stream(constructor.getParameters()).map(InjectionProvider::toComponentRef).toArray(ComponentRef<?>[]::new);
+        this.injectableConstructor = new Injectable<>(constructor, required);
+
+
+        injectConstructor = constructor;
         injectFields = getInjectFields(component);
         injectMethods = getInjectMethods(component);
 
@@ -94,6 +102,11 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
                 .toList();
     }
 
+    static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required) {
+
+
+
+    }
 
 
     private static <T extends AnnotatedElement> Stream<T> injectable(T[] members) {
