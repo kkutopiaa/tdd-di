@@ -90,9 +90,13 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private ComponentRef toComponentRef(Field field) {
-        Annotation qualifer = stream(field.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
+        Annotation qualifier = getQualifier(field);
+        return ComponentRef.of(field.getGenericType(), qualifier);
+    }
+
+    private static Annotation getQualifier(Field field) {
+        return stream(field.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class))
                 .findFirst().orElse(null);
-        return ComponentRef.of(field.getGenericType(), qualifer);
     }
 
     private ComponentRef toComponentRef(Parameter parameter) {
@@ -125,7 +129,7 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static Object toDependency(Context context, Field field) {
-        return toDependency(context, field.getGenericType(), null);
+        return toDependency(context, field.getGenericType(), getQualifier(field));
     }
 
     private static Object toDependency(Context context, Type type, Annotation qualifier) {
