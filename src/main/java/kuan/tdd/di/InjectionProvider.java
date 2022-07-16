@@ -18,13 +18,12 @@ import static java.util.Arrays.stream;
  */
 class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
     private final List<Field> injectFields;
-    private final List<Method> injectMethods;
 
     private List<ComponentRef> dependencies;
 
     private final Injectable<Constructor<T>> injectConstructor;
 
-    private List<Injectable<Method>> injectableMethods;
+    private final List<Injectable<Method>> injectableMethods;
 
 
     public InjectionProvider(Class<T> component) {
@@ -38,7 +37,6 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
         this.injectableMethods = getInjectMethods(component).stream().map(this::getInjectable).toList();
 
         injectFields = getInjectFields(component);
-        injectMethods = getInjectMethods(component);
 
         if (injectFields.stream().anyMatch(f -> Modifier.isFinal(f.getModifiers()))) {
             throw new IllegalComponentException();
