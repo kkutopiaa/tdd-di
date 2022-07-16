@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
@@ -149,7 +150,32 @@ class InjectionTest {
 
         @Nested
         class WithQualifier {
+
+            @BeforeEach
+            public void before() {
+                Mockito.reset(context);
+                when(context.get(ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))))
+                        .thenReturn(Optional.of(dependency));
+            }
+
+            static class InjectConstructor {
+                Dependency dependency;
+
+                @Inject
+                public InjectConstructor(@Named("ChosenOne") Dependency dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
             // todo inject with qualifier
+            @Test
+            public void should_inject_dependency_with_qualifier_via_constructor() {
+                InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
+                InjectConstructor component = provider.get(context);
+                assertSame(dependency, component.dependency);
+            }
+
+
             @Test
             public void should_include_dependency_with_qualifier() {
                 InjectionProvider<InjectConstructor> provider = new InjectionProvider<>(InjectConstructor.class);
@@ -158,11 +184,6 @@ class InjectionTest {
                         provider.getDependencies().toArray());
             }
 
-            static class InjectConstructor {
-                @Inject
-                public InjectConstructor(@Named("ChosenOne") Dependency dependency) {
-                }
-            }
 
             // todo throw illegal component if illegal qualifier given to injection point
         }
