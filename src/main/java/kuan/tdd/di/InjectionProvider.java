@@ -63,12 +63,9 @@ class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     @Override
     public List<ComponentRef<?>> getDependencies() {
-        return Stream.concat(Stream.concat(
-                                stream(injectConstructor.required()),
-                                injectFields.stream().flatMap(f -> stream(f.required()))
-                        ),
-                        injectMethods.stream().flatMap(m -> stream(m.required())))
-                .toList();
+        return Stream.concat(Stream.concat(Stream.of(injectConstructor), injectFields.stream()),
+                        injectMethods.stream())
+                .flatMap(injectable -> stream(injectable.required())).toList();
     }
 
     static record Injectable<Element extends AccessibleObject>(Element element, ComponentRef<?>[] required) {
