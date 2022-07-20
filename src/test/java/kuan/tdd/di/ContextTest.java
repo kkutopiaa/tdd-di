@@ -125,8 +125,11 @@ class ContextTest {
 
             Context context = config.getContext();
 
-            Provider<TestComponent> provider = context.get(new ComponentRef<Provider<TestComponent>>() {
-            }).get();
+            ComponentRef<Provider<TestComponent>> ref = new ComponentRef<>() {
+            };
+            Optional<Provider<TestComponent>> testComponentProvider = context.get(ref);
+            Provider<TestComponent> provider = testComponentProvider.get();
+
             assertSame(instance, provider.get());
         }
 
@@ -170,6 +173,29 @@ class ContextTest {
 
                 assertSame(dependency, choseOne.getDependency());
                 assertSame(dependency, skywalker.getDependency());
+            }
+
+            @Test
+            public void should_retrieve_bind_type_as_provider() {
+                TestComponent instance = new TestComponent() {
+                };
+                config.bind(TestComponent.class, instance, new NamedLiteral("ChosenOne"), new SkywalkerLiteral());
+                Context context = config.getContext();
+                Optional<Provider<TestComponent>> provider = context.get(new ComponentRef<Provider<TestComponent>>(new SkywalkerLiteral()) {
+                });
+
+                assertTrue(provider.isPresent());
+            }
+
+            @Test
+            public void should_retrieve_empty_if_no_matched_qualifier() {
+                config.bind(TestComponent.class, new TestComponent() {
+                });
+                Context context = config.getContext();
+
+                Optional<TestComponent> component = context.get(ComponentRef.of(TestComponent.class, new SkywalkerLiteral()));
+
+                assertTrue(component.isEmpty());
             }
 
             @Test

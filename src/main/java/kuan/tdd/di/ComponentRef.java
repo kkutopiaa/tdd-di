@@ -9,8 +9,7 @@ import java.util.Objects;
  * @author qinxuekuan
  * @date 2022/7/9
  */
-public
-class ComponentRef<ComponentType> {
+public class ComponentRef<ComponentType> {
     private Type container;
 
     private Component component;
@@ -42,6 +41,11 @@ class ComponentRef<ComponentType> {
     protected ComponentRef() {
         Type type = ((ParameterizedType) (getClass().getGenericSuperclass())).getActualTypeArguments()[0];
         init(type, null);
+    }
+
+    protected ComponentRef(Annotation qualifier) {
+        Type type = ((ParameterizedType) (getClass().getGenericSuperclass())).getActualTypeArguments()[0];
+        init(type, qualifier);
     }
 
     private void init(Type type, Annotation qualifier) {
