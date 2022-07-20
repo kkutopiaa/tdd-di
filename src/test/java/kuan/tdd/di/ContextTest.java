@@ -523,28 +523,71 @@ class ContextTest {
             }
 
 
-            @Test
-            public void should_not_throw_cyclic_exception_if_component_with_same_type_taged_with_different_qualifier() {
+            @ParameterizedTest(name = "{1} -> @Skywalker({0}) -> @Named(\"ChosenOne\") not cyclic dependencies")
+            @MethodSource
+            public void should_not_throw_cyclic_exception_if_component_with_same_type_taged_with_different_qualifier(
+                    Class<? extends Dependency> skywalker, Class<? extends Dependency> notCyclic) {
+
                 Dependency instance = new Dependency() {
                 };
                 config.bind(Dependency.class, instance, new NamedLiteral("ChosenOne"));
-                config.bind(Dependency.class, SkywalkerDependency.class, new SkywalkerLiteral());
-                config.bind(Dependency.class, NotCyclicDependency.class);
+                config.bind(Dependency.class, skywalker, new SkywalkerLiteral());
+                config.bind(Dependency.class, notCyclic);
 
                 assertDoesNotThrow(() -> config.getContext());
             }
 
-            static class NotCyclicDependency implements Dependency {
+            public static Stream<Arguments>
+            should_not_throw_cyclic_exception_if_component_with_same_type_taged_with_different_qualifier() {
+                List<Arguments> arguments = new ArrayList<>();
+                for (Named skywalker : List.of(
+                        Named.of("Inject Constructor", SkywalkerInjectConstructor.class),
+                        Named.of("Inject Field", SkywalkerInjectField.class),
+                        Named.of("Inject Method", SkywalkerInjectMethod.class))) {
+                    for (Named notCyclic : List.of(
+                            Named.of("Inject Constructor", NotCyclicInjectConstructor.class),
+                            Named.of("Inject Field", NotCyclicInjectField.class),
+                            Named.of("Inject Method", NotCyclicInjectConstructor.class))) {
+                        arguments.add(Arguments.of(skywalker, notCyclic));
+                    }
+                }
+                return arguments.stream();
+            }
+
+            static class NotCyclicInjectConstructor implements Dependency {
                 @Inject
-                public NotCyclicDependency(@Skywalker Dependency dependency) {
+                public NotCyclicInjectConstructor(@Skywalker Dependency dependency) {
                 }
             }
 
-            static class SkywalkerDependency implements Dependency {
+            static class NotCyclicInjectField implements Dependency {
                 @Inject
-                public SkywalkerDependency(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
-                }
+                @Skywalker
+                Dependency dependency;
+            }
 
+            static class NotCyclicInjectMethod implements Dependency {
+                @Inject
+                void install(@Skywalker Dependency dependency) {
+                }
+            }
+
+            static class SkywalkerInjectConstructor implements Dependency {
+                @Inject
+                public SkywalkerInjectConstructor(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
+                }
+            }
+
+            static class SkywalkerInjectField implements Dependency {
+                @Inject
+                @jakarta.inject.Named("ChosenOne")
+                Dependency dependency;
+            }
+
+            static class SkywalkerInjectMethod implements Dependency {
+                @Inject
+                void install(@jakarta.inject.Named("ChosenOne") Dependency dependency) {
+                }
             }
 
 
