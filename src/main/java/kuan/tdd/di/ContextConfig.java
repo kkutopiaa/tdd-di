@@ -32,7 +32,7 @@ public class ContextConfig {
 
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
-        components.put(new Component(type, null), new InjectionProvider<>(implementation));
+        bind(type, implementation, implementation.getAnnotations());
     }
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... annotations) {

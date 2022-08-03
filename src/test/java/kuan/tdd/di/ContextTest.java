@@ -243,6 +243,26 @@ class ContextTest {
                 );
             }
 
+
+            @Singleton
+            static class SingletonAnnotated {
+
+            }
+
+            @Test
+            public void should_retrieve_scope_annotation_from_component() {
+                config.bind(SingletonAnnotated.class, SingletonAnnotated.class);
+
+                Context context = config.getContext();
+
+                assertSame(
+                        context.get(ComponentRef.of(SingletonAnnotated.class)).get(),
+                        context.get(ComponentRef.of(SingletonAnnotated.class)).get()
+                );
+            }
+
+
+
             @Nested
             class WithQualifier {
                 @Test
