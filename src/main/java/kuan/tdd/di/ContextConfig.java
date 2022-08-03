@@ -41,7 +41,15 @@ public class ContextConfig {
                 .anyMatch(t -> !t.isAnnotationPresent(Qualifier.class) && !t.isAnnotationPresent(Scope.class))) {
             throw new IllegalComponentException();
         }
-        for (Annotation qualifier : annotations) {
+
+        List<Annotation> qualifiers = Arrays.stream(annotations)
+                .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+
+        if (qualifiers.isEmpty()) {
+            components.put(new Component(type, null), new InjectionProvider<>(implementation));
+        }
+
+        for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), new InjectionProvider<>(implementation));
         }
     }
