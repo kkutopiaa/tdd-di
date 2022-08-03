@@ -256,6 +256,16 @@ class ContextTest {
                     );
                 }
 
+                @Test
+                public void should_bing_component_as_singleton_scoped() {
+                    config.bind(NotSingleton.class, NotSingleton.class, new SingletonLiteral(), new SkywalkerLiteral());
+
+                    Context context = config.getContext();
+                    assertSame(
+                            context.get(ComponentRef.of(NotSingleton.class, new SkywalkerLiteral())).get(),
+                            context.get(ComponentRef.of(NotSingleton.class, new SkywalkerLiteral())).get()
+                    );
+                }
 
             }
 
