@@ -2,6 +2,7 @@ package kuan.tdd.di;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
@@ -226,6 +227,17 @@ class ContextTest {
 
                 Context context = config.getContext();
                 assertNotSame(
+                        context.get(ComponentRef.of(NotSingleton.class)).get(),
+                        context.get(ComponentRef.of(NotSingleton.class)).get()
+                );
+            }
+
+            @Test
+            public void should_bing_component_as_singleton_scoped() {
+                config.bind(NotSingleton.class, NotSingleton.class, new SingletonLiteral());
+
+                Context context = config.getContext();
+                assertSame(
                         context.get(ComponentRef.of(NotSingleton.class)).get(),
                         context.get(ComponentRef.of(NotSingleton.class)).get()
                 );
@@ -675,5 +687,12 @@ record TestLiteral() implements Test {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Test.class;
+    }
+}
+
+record SingletonLiteral() implements Singleton {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Singleton.class;
     }
 }
