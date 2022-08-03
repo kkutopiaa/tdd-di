@@ -2,6 +2,7 @@ package kuan.tdd.di;
 
 import jakarta.inject.Provider;
 import jakarta.inject.Qualifier;
+import jakarta.inject.Scope;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
@@ -34,11 +35,13 @@ public class ContextConfig {
         components.put(new Component(type, null), new InjectionProvider<>(implementation));
     }
 
-    public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... qualifiers) {
-        if (Arrays.stream(qualifiers).anyMatch(q -> !q.annotationType().isAnnotationPresent(Qualifier.class))) {
+    public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... annotations) {
+        if (Arrays.stream(annotations)
+                .map(a -> a.annotationType())
+                .anyMatch(t -> !t.isAnnotationPresent(Qualifier.class) && !t.isAnnotationPresent(Scope.class))) {
             throw new IllegalComponentException();
         }
-        for (Annotation qualifier : qualifiers) {
+        for (Annotation qualifier : annotations) {
             components.put(new Component(type, qualifier), new InjectionProvider<>(implementation));
         }
     }
