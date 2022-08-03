@@ -44,13 +44,38 @@ public class ContextConfig {
 
         List<Annotation> qualifiers = Arrays.stream(annotations)
                 .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+        Optional<Annotation> scope = Arrays.stream(annotations)
+                .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst();
+
+        ComponentProvider<Implementation> injectionProvider = new InjectionProvider<>(implementation);
+        ComponentProvider<Implementation> provider =
+                scope.map(s -> (ComponentProvider<Implementation>) new SingletonProvider(injectionProvider))
+                        .orElse(injectionProvider);
 
         if (qualifiers.isEmpty()) {
-            components.put(new Component(type, null), new InjectionProvider<>(implementation));
+            components.put(new Component(type, null), provider);
         }
 
         for (Annotation qualifier : qualifiers) {
-            components.put(new Component(type, qualifier), new InjectionProvider<>(implementation));
+            components.put(new Component(type, qualifier), provider);
+        }
+    }
+
+    static class SingletonProvider<T> implements ComponentProvider<T> {
+
+        private T singleton;
+        private ComponentProvider<T> provider;
+
+        public SingletonProvider(ComponentProvider<T> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public T get(Context context) {
+            if (singleton == null) {
+                singleton = provider.get(context);
+            }
+            return singleton;
         }
     }
 
