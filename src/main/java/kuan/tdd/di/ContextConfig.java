@@ -32,7 +32,7 @@ public class ContextConfig {
 
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation) {
-        bind(type, implementation, type.getAnnotations());
+        bind(type, implementation, implementation.getAnnotations());
     }
 
     public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... annotations) {
@@ -42,14 +42,15 @@ public class ContextConfig {
             throw new IllegalComponentException();
         }
 
-        Optional<Annotation> scopeFromType = Arrays.stream(type.getAnnotations())
+        Optional<Annotation> scopeFromImplementation
+                = Arrays.stream(implementation.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst();
 
         List<Annotation> qualifiers = Arrays.stream(annotations)
                 .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).toList();
         Optional<Annotation> scope = Arrays.stream(annotations)
                 .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst()
-                .or(() -> scopeFromType);
+                .or(() -> scopeFromImplementation);
 
         ComponentProvider<Implementation> injectionProvider = new InjectionProvider<>(implementation);
         ComponentProvider<Implementation> provider =
