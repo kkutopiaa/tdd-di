@@ -214,6 +214,42 @@ class ContextTest {
             }
         }
 
+
+        @Nested
+        class WithScope {
+            static class NotSingleton {
+            }
+
+            @Test
+            public void should_not_be_singleton_scope_by_default() {
+                config.bind(NotSingleton.class, NotSingleton.class);
+
+                Context context = config.getContext();
+                assertNotSame(
+                        context.get(ComponentRef.of(NotSingleton.class)).get(),
+                        context.get(ComponentRef.of(NotSingleton.class)).get()
+                );
+            }
+
+            @Nested
+            class WithQualifier {
+                @Test
+                public void should_not_be_singleton_scope_by_default() {
+                    config.bind(NotSingleton.class, NotSingleton.class, new SkywalkerLiteral());
+
+                    Context context = config.getContext();
+                    assertNotSame(
+                            context.get(ComponentRef.of(NotSingleton.class, new SkywalkerLiteral())).get(),
+                            context.get(ComponentRef.of(NotSingleton.class, new SkywalkerLiteral())).get()
+                    );
+                }
+
+
+            }
+
+
+        }
+
     }
 
     @Nested
