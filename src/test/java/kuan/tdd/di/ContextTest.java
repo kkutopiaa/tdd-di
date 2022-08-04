@@ -326,7 +326,8 @@ class ContextTest {
                     Arguments.of(Named.of("Inject Method", DependencyCheck.MissingDependencyMethod.class)),
                     Arguments.of(Named.of("Provider In Inject Constructor", MissingDependencyProviderConstructor.class)),
                     Arguments.of(Named.of("Provider In Inject Field", MissingDependencyProviderField.class)),
-                    Arguments.of(Named.of("Provider In Inject Method", MissingDependencyProviderMethod.class))
+                    Arguments.of(Named.of("Provider In Inject Method", MissingDependencyProviderMethod.class)),
+                    Arguments.of(Named.of("Scoped", MissingDependencyScoped.class))
             );
 
         }
@@ -366,6 +367,14 @@ class ContextTest {
             void install(Provider<Dependency> dependencyProvider) {
             }
         }
+
+
+        @Singleton
+        static class MissingDependencyScoped implements TestComponent {
+            @Inject
+            Dependency dependency;
+        }
+
 
         @Test
         public void should_throw_exception_if_transitive_dependency_not_found() {
