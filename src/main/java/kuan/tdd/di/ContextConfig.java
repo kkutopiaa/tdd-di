@@ -3,6 +3,7 @@ package kuan.tdd.di;
 import jakarta.inject.Provider;
 import jakarta.inject.Qualifier;
 import jakarta.inject.Scope;
+import jakarta.inject.Singleton;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
@@ -17,6 +18,11 @@ import java.util.function.Function;
  */
 public class ContextConfig {
     private final Map<Component, ComponentProvider<?>> components = new HashMap<>();
+    private Map<Class<?>, Function<ComponentProvider<?>, ComponentProvider<?>>> scopes = new HashMap<>();
+
+    public ContextConfig() {
+        scope(Singleton.class, SingletonProvider::new);
+    }
 
     public <T> void bind(Class<T> type, T instance) {
         components.put(new Component(type, null), context -> instance);
@@ -54,8 +60,8 @@ public class ContextConfig {
                 .or(() -> scopeFromImplementation);
 
         ComponentProvider<Implementation> injectionProvider = new InjectionProvider<>(implementation);
-        ComponentProvider<Implementation> provider =
-                scope.map(s -> (ComponentProvider<Implementation>) new SingletonProvider(injectionProvider))
+        ComponentProvider<?> provider =
+                scope.<ComponentProvider<?>>map(s -> getScopeProvider(s, injectionProvider))
                         .orElse(injectionProvider);
 
         if (qualifiers.isEmpty()) {
@@ -67,9 +73,14 @@ public class ContextConfig {
         }
     }
 
+    private ComponentProvider<?> getScopeProvider(Annotation scope, ComponentProvider<?> provider) {
+        return scopes.get(scope.annotationType())
+                .apply(provider);
+    }
+
     public <ScopeType extends Annotation> void scope(Class<ScopeType> scope,
                                                      Function<ComponentProvider<?>, ComponentProvider<?>> provider) {
-
+        scopes.put(scope, provider);
     }
 
     static class SingletonProvider<T> implements ComponentProvider<T> {
