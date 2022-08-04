@@ -2,6 +2,7 @@ package kuan.tdd.di;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.inject.Scope;
 import jakarta.inject.Singleton;
 import kuan.tdd.di.exception.CyclicDependenciesFoundException;
 import kuan.tdd.di.exception.DependencyNotFoundException;
@@ -12,10 +13,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.util.*;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -245,7 +246,7 @@ class ContextTest {
 
 
             @Singleton
-            static class SingletonAnnotated implements Dependency{
+            static class SingletonAnnotated implements Dependency {
 
             }
 
@@ -261,6 +262,18 @@ class ContextTest {
                 );
             }
 
+            @Test
+            public void should_bind_component_as_customized_scope() {
+                config.scope(Pooled.class, PooledProvider::new);
+                config.bind(NotSingleton.class, NotSingleton.class, new PooledLiteral());
+
+                Context context = config.getContext();
+                List<NotSingleton> instances = IntStream.range(0, 5)
+                        .mapToObj(i -> context.get(ComponentRef.of(NotSingleton.class)).get())
+                        .toList();
+
+                assertEquals(PooledProvider.MAX, new HashSet<>(instances).size());
+            }
 
 
             @Nested
@@ -752,5 +765,43 @@ record SingletonLiteral() implements Singleton {
     @Override
     public Class<? extends Annotation> annotationType() {
         return Singleton.class;
+    }
+}
+
+@Scope
+@Documented
+@Retention(RUNTIME)
+@interface Pooled {
+}
+
+record PooledLiteral() implements Pooled {
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Pooled.class;
+    }
+}
+
+class PooledProvider<T> implements ContextConfig.ComponentProvider<T> {
+
+    static int MAX = 2;
+    int current;
+    private List<T> pool = new ArrayList<>();
+    private ContextConfig.ComponentProvider<T> provider;
+
+    public PooledProvider(ContextConfig.ComponentProvider<T> provider) {
+        this.provider = provider;
+    }
+
+    @Override
+    public T get(Context context) {
+        if (pool.size() < MAX) {
+            pool.add(provider.get(context));
+        }
+        return pool.get(current++ % MAX);
+    }
+
+    @Override
+    public List<ComponentRef<?>> getDependencies() {
+        return provider.getDependencies();
     }
 }

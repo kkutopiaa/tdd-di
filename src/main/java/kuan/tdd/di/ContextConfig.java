@@ -9,6 +9,7 @@ import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author qinxuekuan
@@ -64,6 +65,11 @@ public class ContextConfig {
         for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), provider);
         }
+    }
+
+    public <ScopeType extends Annotation> void scope(Class<ScopeType> scope,
+                                                     Function<ComponentProvider<?>, ComponentProvider<?>> provider) {
+
     }
 
     static class SingletonProvider<T> implements ComponentProvider<T> {
