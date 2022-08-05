@@ -10,6 +10,8 @@ import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author qinxuekuan
@@ -41,10 +43,13 @@ public class ContextConfig {
         bind(type, implementation, implementation.getAnnotations());
     }
 
-    public <T, Implementation extends T> void bind(Class<T> type, Class<Implementation> implementation, Annotation... annotations) {
-        if (Arrays.stream(annotations)
-                .map(a -> a.annotationType())
-                .anyMatch(t -> !t.isAnnotationPresent(Qualifier.class) && !t.isAnnotationPresent(Scope.class))) {
+    public <T, Implementation extends T>
+    void bind(Class<T> type, Class<Implementation> implementation, Annotation... annotations) {
+        // 将 annotation 分成 3 个组： 带Scope的，带Qualifier的，其他异常情况的（Illegal）
+        Map<Class<?>, List<Annotation>> annotationGroups = Arrays.stream(annotations)
+                .collect(Collectors.groupingBy(this::typeOf, Collectors.toList()));
+
+        if (annotationGroups.containsKey(Illegal.class)) {
             throw new IllegalComponentException();
         }
 
@@ -70,6 +75,17 @@ public class ContextConfig {
         for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), provider);
         }
+    }
+
+    private Class<?> typeOf(Annotation annotation) {
+        Class<? extends Annotation> type = annotation.annotationType();
+        return Stream.of(Qualifier.class, Scope.class)
+                .filter(type::isAnnotationPresent).findFirst()
+                .orElse(Illegal.class);
+    }
+
+    private @interface Illegal {
+
     }
 
     private ComponentProvider<?> getScopeProvider(Annotation scope, ComponentProvider<?> provider) {
