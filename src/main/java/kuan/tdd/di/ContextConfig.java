@@ -10,7 +10,6 @@ import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * @author qinxuekuan
@@ -18,7 +17,7 @@ import java.util.function.Function;
  */
 public class ContextConfig {
     private final Map<Component, ComponentProvider<?>> components = new HashMap<>();
-    private Map<Class<?>, Function<ComponentProvider<?>, ComponentProvider<?>>> scopes = new HashMap<>();
+    private Map<Class<?>, ScopeProvider> scopes = new HashMap<>();
 
     public ContextConfig() {
         scope(Singleton.class, SingletonProvider::new);
@@ -75,11 +74,11 @@ public class ContextConfig {
 
     private ComponentProvider<?> getScopeProvider(Annotation scope, ComponentProvider<?> provider) {
         return scopes.get(scope.annotationType())
-                .apply(provider);
+                .create(provider);
     }
 
     public <ScopeType extends Annotation> void scope(Class<ScopeType> scope,
-                                                     Function<ComponentProvider<?>, ComponentProvider<?>> provider) {
+                                                     ScopeProvider provider) {
         scopes.put(scope, provider);
     }
 
