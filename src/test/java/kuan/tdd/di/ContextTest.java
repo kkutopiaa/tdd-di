@@ -276,6 +276,15 @@ class ContextTest {
             }
 
 
+            @Test
+            public void should_throw_exception_if_multi_scope_provided() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(NotSingleton.class, NotSingleton.class,
+                                new SingletonLiteral(), new PooledLiteral()));
+
+            }
+
+
             @Nested
             class WithQualifier {
                 @Test
