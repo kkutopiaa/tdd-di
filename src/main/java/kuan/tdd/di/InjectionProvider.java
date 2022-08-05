@@ -16,7 +16,7 @@ import static java.util.Arrays.stream;
  * @author qinxuekuan
  * @date 2022/6/17
  */
-class InjectionProvider<T> implements ContextConfig.ComponentProvider<T> {
+class InjectionProvider<T> implements ComponentProvider<T> {
 
     private final Injectable<Constructor<T>> injectConstructor;
 
