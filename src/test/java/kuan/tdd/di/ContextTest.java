@@ -294,6 +294,12 @@ class ContextTest {
                         () -> config.bind(MultiScopeAnnotated.class, MultiScopeAnnotated.class));
             }
 
+            @Test
+            public void should_throw_exception_if_scope_undefined() {
+                assertThrows(IllegalComponentException.class,
+                        () -> config.bind(NotSingleton.class, NotSingleton.class, new PooledLiteral()));
+            }
+
             @Nested
             class WithQualifier {
                 @Test
