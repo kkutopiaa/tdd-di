@@ -53,19 +53,23 @@ public class ContextConfig {
             throw new IllegalComponentException();
         }
 
-        List<Annotation> qualifiers = annotationGroups.getOrDefault(Qualifier.class, List.of());
-        Optional<Annotation> scope = annotationGroups.getOrDefault(Scope.class, List.of()).stream().findFirst()
-                .or(() -> scopeFrom(implementation));
+        bind(type, annotationGroups.getOrDefault(Qualifier.class, List.of()),
+                createScopeProvider(implementation, annotationGroups.getOrDefault(Scope.class, List.of())));
+    }
 
+    private <T, Implementation extends T> ComponentProvider<?>
+    createScopeProvider(Class<Implementation> implementation, List<Annotation> scopes) {
         ComponentProvider<Implementation> injectionProvider = new InjectionProvider<>(implementation);
-        ComponentProvider<?> provider =
-                scope.<ComponentProvider<?>>map(s -> getScopeProvider(s, injectionProvider))
-                        .orElse(injectionProvider);
+        Optional<Annotation> scope = scopes.stream().findFirst()
+                .or(() -> scopeFrom(implementation));
+        return scope.<ComponentProvider<?>>map(s -> getScopeProvider(s, injectionProvider))
+                .orElse(injectionProvider);
+    }
 
+    private <T> void bind(Class<T> type, List<Annotation> qualifiers, ComponentProvider<?> provider) {
         if (qualifiers.isEmpty()) {
             components.put(new Component(type, null), provider);
         }
-
         for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), provider);
         }
