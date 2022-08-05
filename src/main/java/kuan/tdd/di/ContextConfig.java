@@ -53,13 +53,9 @@ public class ContextConfig {
             throw new IllegalComponentException();
         }
 
-        Optional<Annotation> scopeFromImplementation
-                = Arrays.stream(implementation.getAnnotations())
-                .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst();
-
         List<Annotation> qualifiers = annotationGroups.getOrDefault(Qualifier.class, List.of());
         Optional<Annotation> scope = annotationGroups.getOrDefault(Scope.class, List.of()).stream().findFirst()
-                .or(() -> scopeFromImplementation);
+                .or(() -> scopeFrom(implementation));
 
         ComponentProvider<Implementation> injectionProvider = new InjectionProvider<>(implementation);
         ComponentProvider<?> provider =
@@ -73,6 +69,11 @@ public class ContextConfig {
         for (Annotation qualifier : qualifiers) {
             components.put(new Component(type, qualifier), provider);
         }
+    }
+
+    private <T> Optional<Annotation> scopeFrom(Class<T> implementation) {
+        return Arrays.stream(implementation.getAnnotations())
+                .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst();
     }
 
     private Class<?> typeOf(Annotation annotation) {
