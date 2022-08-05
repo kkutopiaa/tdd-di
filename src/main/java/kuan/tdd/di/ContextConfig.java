@@ -57,8 +57,7 @@ public class ContextConfig {
                 = Arrays.stream(implementation.getAnnotations())
                 .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst();
 
-        List<Annotation> qualifiers = Arrays.stream(annotations)
-                .filter(a -> a.annotationType().isAnnotationPresent(Qualifier.class)).toList();
+        List<Annotation> qualifiers = annotationGroups.getOrDefault(Qualifier.class, List.of());
         Optional<Annotation> scope = Arrays.stream(annotations)
                 .filter(a -> a.annotationType().isAnnotationPresent(Scope.class)).findFirst()
                 .or(() -> scopeFromImplementation);
