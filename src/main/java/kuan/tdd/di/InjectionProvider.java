@@ -6,6 +6,7 @@ import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
@@ -171,6 +172,43 @@ class InjectionProvider<T> implements ComponentProvider<T> {
             current = current.getSuperclass();
         }
         return members;
+    }
+
+}
+
+
+class ComponentError extends Error {
+
+    public ComponentError(String message) {
+        super(message);
+    }
+
+    static ComponentError abstractComponent(Class<?> component) {
+        return new ComponentError(MessageFormat.format("Can not be abstract: {0}", component));
+    }
+    static ComponentError finalInjectFields(Class<?> component, Collection<Field> fields) {
+        return new ComponentError(MessageFormat.format("Injectable field can not be final: {0} in {1}",
+                String.join(" , ", fields.stream().map(Field::getName).toList()), component));
+    }
+    static ComponentError injectMethodsWithTypeParameter(Class<?> component, Collection<Method> fields) {
+        return new ComponentError(MessageFormat.format("Injectable method can not have type parameter: {0} in {1}",
+                String.join(" , ", fields.stream().map(Method::getName).toList()), component));
+    }
+    static ComponentError ambiguousInjectableConstructors(Class<?> component) {
+        return new ComponentError(MessageFormat.format("Ambiguous injectable constructors: {0}", component));
+    }
+    static ComponentError noDefaultConstructor(Class<?> component) {
+        return new ComponentError(MessageFormat.format("No default constructors: {0}", component));
+    }
+    static ComponentError ambiguousQualifiers(AnnotatedElement element, List<Annotation> qualifiers) {
+        Class<?> component;
+        if (element instanceof Parameter p) {
+            component = p.getDeclaringExecutable().getDeclaringClass();
+        } else {
+            component = ((Field) element).getDeclaringClass();
+        }
+        return new ComponentError(MessageFormat.format("Ambiguous qualifiers: {0} on {1} of {2}",
+                String.join(" , ", qualifiers.stream().map(Object::toString).toList()), element, component));
     }
 
 }

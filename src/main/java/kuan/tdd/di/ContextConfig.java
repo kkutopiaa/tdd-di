@@ -9,6 +9,7 @@ import kuan.tdd.di.exception.DependencyNotFoundException;
 import kuan.tdd.di.exception.IllegalComponentException;
 
 import java.lang.annotation.Annotation;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -153,5 +154,44 @@ public class ContextConfig {
         }
     }
 
+}
 
+class ContextConfigError extends Error {
+
+    public ContextConfigError(String message) {
+        super(message);
+    }
+
+    static ContextConfigError unsatisfiedResoulution(Component component, Component dependency) {
+        return new ContextConfigError(MessageFormat.format("Unsatisfied resolution: {1} for {0}",
+                component, dependency)
+        );
+    }
+
+    static ContextConfigError circularDependencies(Collection<Component> path, Component circular) {
+        return new ContextConfigError(MessageFormat.format("Circular dependencies: {0} -> [{1}]",
+                path.stream().map(Objects::toString).collect(Collectors.joining(" -> ")), circular)
+        );
+    }
+
+}
+
+class ContextConfigException extends RuntimeException {
+
+    public ContextConfigException(String message) {
+        super(message);
+    }
+
+    static ContextConfigException illegalAnnotation(Class<?> type, List<Annotation> annotations) {
+        return new ContextConfigException(MessageFormat.format("Unqualified annotations: {0} of {1}",
+                String.join(" , ", annotations.stream().map(Object::toString).toList()), type));
+    }
+
+    static ContextConfigException unknownScope(Class<? extends Annotation> annotationType) {
+        return new ContextConfigException(MessageFormat.format("Unknown scope: {0}", annotationType));
+    }
+
+    static ContextConfigException duplicated(Component component) {
+        return new ContextConfigException(MessageFormat.format("Duplicated: {0}", component));
+    }
 }
